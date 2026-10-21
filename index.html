@@ -3,23 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LEMS — Mượn thiết bị thí nghiệm</title>
-  <link rel="stylesheet" href="giao-dien/style.css">
+  <title>AnhGam</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 40px;
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    a {
+      color: #0969da;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <div id="app"></div>
-
-  <!-- Thứ tự nạp = thứ tự tầng: Lưu trữ → Xử lý → Giao diện → Ghép -->
-  <script src="luu-tru/seed.js"></script>
-  <script src="luu-tru/storage.js"></script>
-
-  <script src="xu-ly/lems-service.js"></script>
-
-  <script src="giao-dien/shell.js"></script>
-  <script src="giao-dien/student-view.js"></script>
-  <script src="giao-dien/teacher-view.js"></script>
-  <script src="giao-dien/manager-view.js"></script>
-
-  <script src="ghep/app.js"></script>
+  <h1>Trang cá nhân của AnhGam</h1>
+  <p>Dự án môn học:</p>
+  <ul>
+    <li><a href="se100/">SE100 — Quản lý mượn trả thiết bị thí nghiệm</a></li>
+  </ul>
 </body>
 </html>
