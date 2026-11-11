@@ -1,0 +1,27 @@
+# Giữ dự án Supabase bậc miễn phí hoạt động: 7 ngày không có truy vấn thì Supabase tạm dừng dự án.
+# Mỗi 2 ngày gọi một truy vấn REST nhẹ. Khoá lấy từ Secrets của kho này, không nằm trong kho môn học.
+# Hạng mục: uit-se100-2026-hk1/se100-N05#67 · Phụ trách: N05-B
+name: giu-supabase-song
+
+on:
+  schedule:
+    - cron: '17 1 */2 * *'   # 01:17 UTC, cách 2 ngày
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gọi Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Chưa đặt secret SUPABASE_URL / SUPABASE_ANON_KEY, bỏ qua."; exit 0
+          fi
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/loai_thiet_bi?select=ma&limit=1")
+          echo "HTTP $code"
+          [ "$code" = "200" ]
