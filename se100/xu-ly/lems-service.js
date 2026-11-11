@@ -86,6 +86,22 @@
 
     const inStock = (modelId) =>
       db.where('equipment_items', (i) => i.model_id === modelId && i.operational_status === 'IN_STOCK');
+    
+    // [BR-01] Số thiết bị của một loại đã được giữ cho các đơn Đã duyệt (TEACHER_APPROVED)
+    // nhưng chưa bàn giao. Đơn đã bàn giao thì cá thể đã chuyển BORROWED nên không đếm hai lần;
+    // đơn bị kho từ chối bàn giao rời TEACHER_APPROVED nên tự động nhả giữ.
+    // exceptRequestId: bỏ qua chính đơn đang xét.
+    const heldFor = (modelId, exceptRequestId) =>
+      db
+        .where('borrow_request_items', (l) => {
+          if (l.model_id !== modelId || l.request_id === exceptRequestId) return false;
+          const r = db.find('borrow_requests', l.request_id);
+          return !!r && r.overall_status === STATUS.TEACHER_APPROVED;
+        })
+        .reduce((sum, l) => sum + (l.requested_quantity || 1), 0);
+    // Số còn có thể mượn = số cá thể trong kho trừ số đã giữ cho đơn Đã duyệt; không bao giờ âm.
+    const lendable = (modelId, exceptRequestId) =>
+      Math.max(0, inStock(modelId).length - heldFor(modelId, exceptRequestId));
     const linesOf = (requestId) => db.where('borrow_request_items', (x) => x.request_id === requestId);
     const bookingOf = (requestId) => db.where('room_booking_details', (b) => b.request_id === requestId)[0] || null;
 
@@ -128,7 +144,7 @@
       return db.all('rooms').map((r) => ({ ...r, department: db.find('departments', r.department_id) }));
     }
     function listModels() {
-      return db.all('equipment_models').map((m) => ({ ...m, available: inStock(m.id).length }));
+      return db.all('equipment_models').map((m) => ({ ...m, available: lendable(m.id) }));
     }
     function listItems() {
       return db.all('equipment_items').map((i) => ({ ...i, model: db.find('equipment_models', i.model_id) }));
@@ -196,7 +212,7 @@
         const model = db.find('equipment_models', l.modelId);
         if (!model) fail('Thiết bị không tồn tại.');
         if (!Number.isInteger(l.quantity)) fail('Số lượng phải là số nguyên.');
-        const available = inStock(model.id).length;
+        const available = lendable(model.id);
         if (l.quantity > available) {
           fail(`"${model.model_name}" chỉ còn ${available} ${model.unit} sẵn sàng trong kho.`);
         }
@@ -291,6 +307,16 @@
       }
 
       return db.transaction(() => {
+                // [BR-01] Đọc lại số còn có thể mượn ngay trong giao dịch: kiểm đủ thiết bị và đổi sang
+        // TEACHER_APPROVED (từ lúc này đơn được tính là đang giữ thiết bị) là một thao tác nguyên tử.
+        const needByModel = {};
+        for (const l of linesOf(req.id)) {
+          needByModel[l.model_id] = (needByModel[l.model_id] || 0) + (l.requested_quantity || 1);
+        }
+        for (const [modelId, need] of Object.entries(needByModel)) {
+          const left = lendable(Number(modelId), req.id);
+          if (need > left) fail(`Không đủ thiết bị để duyệt: chỉ còn ${left} chiếc`);
+        }
         db.update('borrow_requests', req.id, {
           teacher_approval_status: 'APPROVED',
           teacher_comment: String(comment || '').trim(),
