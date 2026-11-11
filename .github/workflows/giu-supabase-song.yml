@@ -1,5 +1,5 @@
 # Giữ dự án Supabase bậc miễn phí hoạt động: 7 ngày không có truy vấn thì Supabase tạm dừng dự án.
-# Mỗi 2 ngày gọi một truy vấn REST nhẹ. Khoá lấy từ Secrets của kho này, không nằm trong kho môn học.
+# Mỗi 2 ngày gọi một yêu cầu nhẹ. Khoá lấy từ Secrets của kho này, không nằm trong kho môn học.
 # Hạng mục: uit-se100-2026-hk1/se100-N05#67 · Phụ trách: N05-B
 name: giu-supabase-song
 
@@ -20,8 +20,7 @@ jobs:
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
             echo "Chưa đặt secret SUPABASE_URL / SUPABASE_ANON_KEY, bỏ qua."; exit 0
           fi
-          code=$(curl -s -o /dev/null -w '%{http_code}' \
-            -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-            "$SUPABASE_URL/rest/v1/loai_thiet_bi?select=ma&limit=1")
+          # Endpoint cấu hình auth: khoá publishable gọi được, không phụ thuộc tên bảng.
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_ANON_KEY" "$SUPABASE_URL/auth/v1/settings")
           echo "HTTP $code"
           [ "$code" = "200" ]
