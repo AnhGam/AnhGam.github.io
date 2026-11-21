@@ -1,20 +1,47 @@
 (() => {
-  const TABS = { timeline: window.LORE_TIMELINE, strata: window.LORE_STRATA };
-  const TAB_LABEL = { timeline: 'Lịch Sử', strata: 'Địa Tầng' };
+  const TIMELINE = window.LORE_TIMELINE || [];
+  const MAP = window.LORE_MAP;
+  const TAB_LABEL = { timeline: 'Lịch Sử', map: 'Bản Đồ Địa Tầng' };
   const CAT_LABEL = { core: 'Core', faction: 'Phe / NPC', system: 'Hệ thống', branch: 'Nhánh phụ', lore: 'Lore / Mảnh' };
+
+  const PIN_ICONS = {
+    hub: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2V13M4.5 9.5C4.5 11.7 6 13 8 13C10 13 11.5 11.7 11.5 9.5M6 5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    region: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/></svg>',
+    bell: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4.5 11.5H11.5L10.5 6.5C10.2 4.8 9.2 3.8 8 3.8C6.8 3.8 5.8 4.8 5.5 6.5L4.5 11.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7 13H9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    boss: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2.5L13 8L8 13.5L3 8L8 2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg>',
+    cave: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2.5 13V9C2.5 5.5 5 3.5 8 3.5C11 3.5 13.5 5.5 13.5 9V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5.5 13V10C5.5 8.4 6.6 7.4 8 7.4C9.4 7.4 10.5 8.4 10.5 10V13" stroke="currentColor" stroke-width="1.3"/></svg>',
+    loot: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="3" y="5" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 8.5H13M7.2 8.5V10.2H8.8V8.5" stroke="currentColor" stroke-width="1.3"/></svg>'
+  };
+
   const byId = {};
-  for (const [tab, list] of Object.entries(TABS)) for (const n of list) byId[n.id] = { ...n, tab };
+  for (const n of TIMELINE) byId[n.id] = { ...n, tab: 'timeline' };
+  for (const p of MAP.pois) byId[p.id] = { ...p, tab: 'map', from: [] };
 
   const $ = (id) => document.getElementById(id);
-  const viewport = $('viewport'), stage = $('canvas-stage'), svg = $('edges-svg'), layer = $('nodes-layer');
+  const viewport = $('viewport'), stage = $('canvas-stage'), svg = $('edges-svg'), underlay = $('map-underlay'), layer = $('nodes-layer');
   const drawer = $('detail-drawer');
-  const state = { tab: 'timeline', filter: 'all', selected: null, history: [], scale: 1, tx: 0, ty: 0 };
+  const state = { tab: 'timeline', filter: 'all', mapLayer: 'all', selected: null, history: [], scale: 1, tx: 0, ty: 0 };
 
-  // ---------- render ----------
   function render() {
-    const list = TABS[state.tab];
+    const isMap = state.tab === 'map';
+    viewport.classList.toggle('is-chart', !isMap);
+    $('filter-group-timeline').classList.toggle('hidden', isMap);
+    $('legend-timeline').classList.toggle('hidden', isMap);
+    $('filter-group-map').classList.toggle('hidden', !isMap);
+    $('legend-map').classList.toggle('hidden', !isMap);
+    underlay.classList.toggle('hidden', !isMap);
+    svg.classList.toggle('hidden', isMap);
+
+    if (isMap) renderMap();
+    else renderTimeline();
+    renderQuickNav();
+    applyFilter();
+  }
+
+  // ---------- Tab 1: Timeline Tree ----------
+  function renderTimeline() {
     layer.innerHTML = '';
-    for (const n of list) {
+    for (const n of TIMELINE) {
       const el = document.createElement('div');
       el.className = `tree-node ${n.kind === 'core' ? 'is-core' : 'is-branch'} cat-${n.cat}`;
       el.dataset.id = n.id;
@@ -29,18 +56,20 @@
       layer.appendChild(el);
     }
     drawEdges();
-    renderQuickNav();
-    applyFilter();
   }
 
   function box(id) {
     const el = layer.querySelector(`[data-id="${id}"]`);
-    return el && { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight };
+    if (!el) return null;
+    if (el.classList.contains('map-pin')) {
+      return { x: el.offsetLeft - el.offsetWidth / 2, y: el.offsetTop - el.offsetHeight / 2, w: el.offsetWidth, h: el.offsetHeight };
+    }
+    return { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight };
   }
 
   function drawEdges() {
     let maxX = 0, maxY = 0, paths = '';
-    for (const n of TABS[state.tab]) {
+    for (const n of TIMELINE) {
       const b = box(n.id);
       maxX = Math.max(maxX, b.x + b.w); maxY = Math.max(maxY, b.y + b.h);
       for (const [pid, type] of n.from) {
@@ -67,42 +96,151 @@
     svg.innerHTML = paths;
   }
 
+  // ---------- Tab 2: Bathymetric Cutaway Map ----------
+  function renderMap() {
+    const W = MAP.width, H = MAP.height;
+    underlay.setAttribute('width', W);
+    underlay.setAttribute('height', H);
+    underlay.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    let s = '';
+    // Strata horizontal bands
+    for (const band of MAP.strataBands) {
+      const y0 = MAP.depthToY(band.d0), y1 = MAP.depthToY(band.d1);
+      s += `<rect x="95" y="${y0}" width="${W - 95}" height="${y1 - y0}" fill="${band.bg}" />`;
+      s += `<line x1="95" y1="${y0}" x2="${W}" y2="${y0}" stroke="#253340" stroke-width="1" stroke-dasharray="4 4" />`;
+      s += `<text x="${W - 24}" y="${y0 + 26}" text-anchor="end" class="map-band-label">${band.label}</text>`;
+      s += `<text x="${W - 24}" y="${y0 + 44}" text-anchor="end" class="map-band-meta">${band.d0}m – ${band.d1}m · ${band.atm} · ${band.light}</text>`;
+    }
+
+    // Sea surface sky strip & Kael-Var silhouette
+    s += `<rect x="0" y="0" width="${W}" height="120" fill="#101a22" />`;
+    s += `<path d="M95,120 Q280,114 480,120 T880,120 T1280,120 L1500,120" fill="none" stroke="#8ab7c2" stroke-width="2" />`;
+    s += `<text x="120" y="88" class="map-band-label">Bạch Hải (0m) — Cảng Kael-Var · Thành Đá Muối Salthold · Wick-Isles</text>`;
+
+    // Geology cutaway walls, caverns, brine pools, oil dome, Leviathan bones
+    for (const g of MAP.geology) {
+      const sw = g.type === 'bone' ? 4 : g.type === 'brine' ? 2 : 1.5;
+      s += `<path d="${g.d}" fill="${g.fill}" stroke="${g.stroke}" stroke-width="${sw}" stroke-linecap="round" />`;
+    }
+
+    // 40m Anchor Core monument at 2,400m
+    s += `<g opacity="0.85">
+      <line x1="760" y1="2275" x2="760" y2="2425" stroke="#c29b54" stroke-width="4" />
+      <path d="M720,2385 C720,2420 800,2420 800,2385" fill="none" stroke="#c29b54" stroke-width="4" stroke-linecap="round" />
+      <line x1="735" y1="2305" x2="785" y2="2305" stroke="#c29b54" stroke-width="3" />
+      <circle cx="760" cy="2275" r="8" fill="none" stroke="#e4ecee" stroke-width="2" />
+    </g>`;
+
+    // Depth ruler (left margin x: 0..95)
+    s += `<rect x="0" y="120" width="95" height="${H - 120}" fill="#0c1218" />`;
+    s += `<line x1="95" y1="120" x2="95" y2="${H}" stroke="#374b5c" stroke-width="1.5" />`;
+    const milestones = new Set([0, 180, 340, 450, 600, 760, 850, 1280, 1400, 2050, 2400]);
+    for (let d = 0; d <= 2400; d += 100) {
+      const y = MAP.depthToY(d);
+      const major = milestones.has(d) || d % 400 === 0;
+      s += `<line x1="${major ? 68 : 80}" y1="${y}" x2="95" y2="${y}" stroke="${major ? '#c29b54' : '#374b5c'}" stroke-width="${major ? 1.5 : 1}" />`;
+      if (major) s += `<text x="62" y="${y + 4}" text-anchor="end" class="map-ruler-text">${d}m</text>`;
+    }
+    for (const d of milestones) {
+      if (d % 100 === 0) continue;
+      const y = MAP.depthToY(d);
+      s += `<line x1="68" y1="${y}" x2="95" y2="${y}" stroke="#c29b54" stroke-width="1.5" />`;
+      s += `<text x="62" y="${y + 4}" text-anchor="end" class="map-ruler-text">${d}m</text>`;
+    }
+
+    // Routes (cables, shortcuts, 360 swim shafts, gates)
+    for (const r of MAP.routes) {
+      if (r.type === 'gate') {
+        s += `<line x1="${r.x1}" y1="${r.y1}" x2="${r.x2}" y2="${r.y2}" stroke="#b8534b" stroke-width="4" />`;
+        s += `<text x="${(r.x1 + r.x2) / 2}" y="${r.y1 - 7}" text-anchor="middle" class="map-route-label">${r.label}</text>`;
+      } else {
+        const stroke = r.type === 'cable' ? '#c29b54' : r.type === 'cable-broken' ? '#6e828c' : r.type === 'shortcut' ? '#c97b3b' : '#4d9aa1';
+        const dash = r.type === 'shortcut' ? '7 5' : r.type === 'cable-broken' ? '3 5' : '';
+        s += `<path d="${r.d}" fill="none" stroke="${stroke}" stroke-width="${r.type === 'swim' ? 3 : 2}" ${dash ? `stroke-dasharray="${dash}"` : ''} opacity="0.88" />`;
+      }
+    }
+    underlay.innerHTML = s;
+
+    // Interactive POI pins
+    layer.innerHTML = '';
+    for (const p of MAP.pois) {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = `map-pin pin-${p.kind}`;
+      el.dataset.id = p.id;
+      el.style.left = p.x + 'px';
+      el.style.top = p.y + 'px';
+      el.innerHTML = `
+        <span class="pin-icon">${PIN_ICONS[p.kind] || PIN_ICONS.region}</span>
+        <span class="pin-body">
+          <span class="pin-depth">${p.depth}</span>
+          <span class="pin-title">${p.title}</span>
+        </span>`;
+      el.addEventListener('click', (e) => { e.stopPropagation(); select(p.id, true); });
+      layer.appendChild(el);
+    }
+  }
+
   function renderQuickNav() {
-    const core = TABS[state.tab].filter((n) => n.kind === 'core');
-    $('quick-nav').innerHTML = `<div class="quick-nav-title">Mốc Core — ${TAB_LABEL[state.tab]}</div>` +
-      core.map((n) => `<button class="quick-item" data-id="${n.id}"><span class="quick-item-tag">${n.meta}</span><span class="quick-item-name">${n.title}</span></button>`).join('');
+    if (state.tab === 'map') {
+      $('quick-nav').innerHTML = `<div class="quick-nav-title">Trục Độ Sâu (0m – 2,400m)</div>` +
+        MAP.pois.filter((p) => p.kind === 'hub' || p.kind === 'region' || p.kind === 'boss')
+          .map((p) => `<button class="quick-item" type="button" data-id="${p.id}"><span class="quick-item-tag">${p.depth}</span><span class="quick-item-name">${p.title}</span></button>`).join('');
+    } else {
+      const core = TIMELINE.filter((n) => n.kind === 'core');
+      $('quick-nav').innerHTML = `<div class="quick-nav-title">Mốc Core — Lịch Sử</div>` +
+        core.map((n) => `<button class="quick-item" type="button" data-id="${n.id}"><span class="quick-item-tag">${n.meta}</span><span class="quick-item-name">${n.title}</span></button>`).join('');
+    }
     $('quick-nav').querySelectorAll('.quick-item').forEach((b) => b.addEventListener('click', () => select(b.dataset.id, true)));
   }
 
   // ---------- filter & highlight ----------
   function visibleByFilter(n) {
+    if (n.tab === 'map') {
+      if (state.mapLayer === 'all') return true;
+      if (state.mapLayer === 'regions') return n.kind === 'hub' || n.kind === 'region' || n.kind === 'cave';
+      if (state.mapLayer === 'stations') return n.kind === 'bell';
+      if (state.mapLayer === 'bosses') return n.kind === 'boss';
+      if (state.mapLayer === 'fragments') return n.layer === 'fragments' || n.kind === 'loot';
+      return true;
+    }
     if (state.filter === 'all' || n.kind === 'core') return true;
     if (state.filter === 'core-only') return false;
     return n.cat === state.filter;
   }
 
   function applyFilter() {
-    const sel = state.selected && byId[state.selected].tab === state.tab ? state.selected : null;
-    const related = new Set();
-    if (sel) {
-      related.add(sel);
-      const n = byId[sel];
-      n.from.forEach(([p]) => related.add(p));
-      n.links.forEach(([l]) => related.add(l));
-      TABS[state.tab].forEach((m) => { if (m.from.some(([p]) => p === sel)) related.add(m.id); });
+    const sel = state.selected && byId[state.selected]?.tab === state.tab ? state.selected : null;
+    if (state.tab === 'map') {
+      layer.querySelectorAll('.map-pin').forEach((el) => {
+        const p = byId[el.dataset.id];
+        const dim = !visibleByFilter(p) || (sel && sel !== p.id);
+        el.classList.toggle('node-dimmed', !!dim);
+        el.classList.toggle('selected', p.id === sel);
+      });
+    } else {
+      const related = new Set();
+      if (sel) {
+        related.add(sel);
+        const n = byId[sel];
+        n.from.forEach(([p]) => related.add(p));
+        n.links.forEach(([l]) => related.add(l));
+        TIMELINE.forEach((m) => { if (m.from.some(([p]) => p === sel)) related.add(m.id); });
+      }
+      layer.querySelectorAll('.tree-node').forEach((el) => {
+        const n = byId[el.dataset.id];
+        const dim = !visibleByFilter(n) || (sel && !related.has(n.id));
+        el.classList.toggle('node-dimmed', !!dim);
+        el.classList.toggle('selected', n.id === sel);
+      });
+      svg.querySelectorAll('path').forEach((p) => {
+        const a = byId[p.dataset.a], b = byId[p.dataset.b];
+        const hit = sel && (p.dataset.a === sel || p.dataset.b === sel);
+        p.classList.toggle('edge-highlight', !!hit);
+        p.classList.toggle('edge-dimmed', !hit && (!visibleByFilter(a) || !visibleByFilter(b) || !!sel));
+      });
     }
-    layer.querySelectorAll('.tree-node').forEach((el) => {
-      const n = byId[el.dataset.id];
-      const dim = !visibleByFilter(n) || (sel && !related.has(n.id));
-      el.classList.toggle('node-dimmed', !!dim);
-      el.classList.toggle('selected', n.id === sel);
-    });
-    svg.querySelectorAll('path').forEach((p) => {
-      const a = byId[p.dataset.a], b = byId[p.dataset.b];
-      const hit = sel && (p.dataset.a === sel || p.dataset.b === sel);
-      p.classList.toggle('edge-highlight', !!hit);
-      p.classList.toggle('edge-dimmed', !hit && (!visibleByFilter(a) || !visibleByFilter(b) || !!sel));
-    });
     document.querySelectorAll('.quick-item').forEach((q) => q.classList.toggle('active', q.dataset.id === sel));
   }
 
@@ -113,7 +251,7 @@
   }
 
   function zoomAt(factor, cx, cy) {
-    const s = Math.min(2.2, Math.max(0.2, state.scale * factor));
+    const s = Math.min(2.2, Math.max(0.22, state.scale * factor));
     state.tx = cx - (cx - state.tx) * (s / state.scale);
     state.ty = cy - (cy - state.ty) * (s / state.scale);
     state.scale = s;
@@ -121,11 +259,18 @@
   }
 
   function fit() {
-    const list = TABS[state.tab];
-    const xs = list.map((n) => box(n.id));
+    const vw = viewport.clientWidth, vh = viewport.clientHeight;
+    if (state.tab === 'map') {
+      state.scale = Math.min(0.92, Math.max(0.62, (vw - 48) / MAP.width));
+      state.tx = (vw - MAP.width * state.scale) / 2;
+      state.ty = 12;
+      applyTransform();
+      return;
+    }
+    const xs = TIMELINE.map((n) => box(n.id)).filter(Boolean);
+    if (!xs.length) return;
     const minX = Math.min(...xs.map((b) => b.x)), minY = Math.min(...xs.map((b) => b.y));
     const maxX = Math.max(...xs.map((b) => b.x + b.w)), maxY = Math.max(...xs.map((b) => b.y + b.h));
-    const vw = viewport.clientWidth, vh = viewport.clientHeight;
     state.scale = Math.min(1, (vw - 60) / (maxX - minX), (vh - 60) / (maxY - minY));
     state.tx = (vw - (maxX - minX) * state.scale) / 2 - minX * state.scale;
     state.ty = 30 - minY * state.scale;
@@ -135,7 +280,7 @@
   function centerOn(id) {
     const b = box(id);
     if (!b) return;
-    if (state.scale < 0.7) state.scale = 0.85;
+    if (state.scale < 0.72) state.scale = 0.86;
     state.tx = viewport.clientWidth / 2 - (b.x + b.w / 2) * state.scale;
     state.ty = viewport.clientHeight / 2 - (b.y + b.h / 2) * state.scale;
     applyTransform();
@@ -143,7 +288,7 @@
 
   let drag = null;
   viewport.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.tree-node')) return;
+    if (e.target.closest('.tree-node, .map-pin')) return;
     drag = { x: e.clientX - state.tx, y: e.clientY - state.ty, moved: false };
     viewport.classList.add('dragging');
   });
@@ -165,7 +310,7 @@
   $('btn-zoom-out').onclick = () => zoomAt(1 / 1.2, viewport.clientWidth / 2, viewport.clientHeight / 2);
   $('btn-fit').onclick = fit;
 
-  // ---------- tabs ----------
+  // ---------- tabs & filters ----------
   function switchTab(tab) {
     if (state.tab === tab) return;
     state.tab = tab;
@@ -181,6 +326,12 @@
   document.querySelectorAll('.filter-pill').forEach((b) => b.addEventListener('click', () => {
     state.filter = b.dataset.filter;
     document.querySelectorAll('.filter-pill').forEach((x) => x.classList.toggle('active', x === b));
+    applyFilter();
+  }));
+
+  document.querySelectorAll('.map-layer-pill').forEach((b) => b.addEventListener('click', () => {
+    state.mapLayer = b.dataset.layer;
+    document.querySelectorAll('.map-layer-pill').forEach((x) => x.classList.toggle('active', x === b));
     applyFilter();
   }));
 
@@ -200,26 +351,26 @@
     drawer.classList.remove('hidden');
     $('btn-history-back').classList.toggle('hidden', state.history.length === 0);
     $('drawer-badges').innerHTML =
-      `<span class="node-kind kind-${n.kind === 'core' ? 'core' : 'branch'}">${n.kind === 'core' ? 'Core Build' : 'Building Phụ'}</span>` +
-      `<span class="node-kind kind-${n.cat === 'core' ? 'core' : n.cat}">${CAT_LABEL[n.cat]}</span>` +
-      `<span class="node-kind kind-lore">Tab ${TAB_LABEL[n.tab]}</span>`;
+      `<span class="node-kind kind-${n.kind === 'core' || n.kind === 'region' || n.kind === 'hub' ? 'core' : 'branch'}">${n.tab === 'map' ? (n.depth || 'Địa điểm') : (n.kind === 'core' ? 'Core Build' : 'Nhánh phụ')}</span>` +
+      `<span class="node-kind kind-${n.cat === 'core' ? 'core' : n.cat}">${CAT_LABEL[n.cat] || 'Bản đồ'}</span>` +
+      `<span class="node-kind kind-lore">${TAB_LABEL[n.tab]}</span>`;
     $('drawer-title').textContent = n.title;
     $('drawer-subtitle').textContent = n.meta;
 
     const step = (cls, label, text) => text ? `<div class="causal-step"><div class="causal-step-label ${cls}">${label}</div><p>${text}</p></div>` : '';
     const causal = step('cause', 'Nguyên nhân', n.cause) + step('', 'Diễn biến', n.event) + step('effect', 'Hệ quả', n.effect);
-    const parents = n.from.map(([p]) => [p, 'Node cha trên cây']);
-    const children = TABS[n.tab].filter((m) => m.from.some(([p]) => p === n.id)).map((m) => [m.id, 'Nhánh dẫn ra']);
-    const links = [...n.links, ...parents, ...children].filter(([id], i, arr) => byId[id] && arr.findIndex(([x]) => x === id) === i);
+    const parents = (n.from || []).map(([p]) => [p, 'Node cha trên cây']);
+    const children = n.tab === 'timeline' ? TIMELINE.filter((m) => m.from.some(([p]) => p === n.id)).map((m) => [m.id, 'Nhánh dẫn ra']) : [];
+    const links = [...(n.links || []), ...parents, ...children].filter(([id], i, arr) => byId[id] && arr.findIndex(([x]) => x === id) === i);
 
     $('drawer-body').innerHTML = `
       <div class="drawer-quote">${n.summary}</div>
       ${causal ? `<div><div class="section-label">Chuỗi nhân quả</div><div class="causal-grid">${causal}</div></div>` : ''}
-      ${n.rules.length ? `<div><div class="section-label">Luật & số đo</div><ul class="rules-list">${n.rules.map((r) => `<li>${r}</li>`).join('')}</ul></div>` : ''}
-      ${n.palette.length ? `<div><div class="section-label">Bảng màu</div><div class="palette-row">${n.palette.map(([hex, name]) => `<span class="swatch"><span class="swatch-box" style="background:${hex}"></span>${hex} · ${name}</span>`).join('')}</div></div>` : ''}
+      ${n.rules && n.rules.length ? `<div><div class="section-label">Luật &amp; số đo</div><ul class="rules-list">${n.rules.map((r) => `<li>${r}</li>`).join('')}</ul></div>` : ''}
+      ${n.palette && n.palette.length ? `<div><div class="section-label">Bảng màu</div><div class="palette-row">${n.palette.map(([hex, name]) => `<span class="swatch"><span class="swatch-box" style="background:${hex}"></span>${hex} · ${name}</span>`).join('')}</div></div>` : ''}
       ${links.length ? `<div><div class="section-label">Liên kết (bấm để nhảy)</div><div class="cross-links">${links.map(([id, why]) => `
-        <button class="cross-link-btn" data-id="${id}"><span class="cross-link-main"><span class="cross-link-title">${byId[id].title}</span><span class="cross-link-reason">${why}</span></span>${byId[id].tab !== n.tab ? `<span class="cross-link-tab">→ ${TAB_LABEL[byId[id].tab]}</span>` : ''}</button>`).join('')}</div></div>` : ''}
-      <div><div class="section-label">Nguồn lore/</div><div class="sources-box">${n.sources.map((s) => `<span class="source-chip">${s}</span>`).join('')}</div></div>`;
+        <button class="cross-link-btn" type="button" data-id="${id}"><span class="cross-link-main"><span class="cross-link-title">${byId[id].title}</span><span class="cross-link-reason">${why}</span></span>${byId[id].tab !== n.tab ? `<span class="cross-link-tab">→ ${TAB_LABEL[byId[id].tab]}</span>` : ''}</button>`).join('')}</div></div>` : ''}
+      <div><div class="section-label">Nguồn lore/</div><div class="sources-box">${(n.sources || []).map((s) => `<span class="source-chip">${s}</span>`).join('')}</div></div>`;
     $('drawer-body').querySelectorAll('.cross-link-btn').forEach((b) => b.addEventListener('click', () => select(b.dataset.id, true)));
     $('drawer-body').scrollTop = 0;
   }
@@ -233,7 +384,7 @@
   input.addEventListener('input', () => {
     const q = norm(input.value.trim());
     if (!q) { results.classList.add('hidden'); return; }
-    const hits = Object.values(byId).filter((n) => norm(`${n.title} ${n.meta} ${n.summary}`).includes(q)).slice(0, 12);
+    const hits = Object.values(byId).filter((n) => norm(`${n.title} ${n.meta} ${n.summary} ${n.depth || ''}`).includes(q)).slice(0, 12);
     results.innerHTML = hits.length ? hits.map((n) => `<div class="search-item" data-id="${n.id}"><span class="search-item-title">${n.title}</span><span class="search-item-meta">${TAB_LABEL[n.tab]} · ${n.meta}</span></div>`).join('')
       : '<div class="search-item"><span class="search-item-meta">Không tìm thấy</span></div>';
     results.classList.remove('hidden');

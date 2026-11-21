@@ -3,44 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Abyssal Severance — Worldbuilding Tree</title>
+  <title>Abyssal Severance — Hồ Sơ Địa Tầng &amp; Nhân Quả</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="brand-sigil" aria-hidden="true"></div>
-      <div>
-        <h1>ABYSSAL SEVERANCE <span class="badge-sub">WORLD TREE</span></h1>
-        <p class="subtitle">Hệ thống liên kết nhân quả, địa tầng &amp; nhánh phụ (27 tài liệu World Bible)</p>
+      <svg class="brand-sigil" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="16" cy="16" r="13.5" stroke="currentColor" stroke-width="1.5" />
+        <path d="M16 5V27M10 19.5C10 23 12.6 25 16 25C19.4 25 22 23 22 19.5" stroke="#c29b54" stroke-width="1.5" stroke-linecap="round" />
+        <circle cx="16" cy="9" r="2" stroke="#4d9aa1" stroke-width="1.5" />
+      </svg>
+      <div class="brand-text">
+        <h1>Abyssal Severance</h1>
+        <p class="subtitle">Hồ sơ nhân quả &amp; bản đồ mặt cắt Vực Vael (0m – 2,400m)</p>
       </div>
     </div>
 
-    <nav class="tab-switcher" role="tablist" aria-label="Góc nhìn cây thế giới">
+    <nav class="tab-switcher" role="tablist" aria-label="Chế độ xem">
       <button class="tab-btn active" data-tab="timeline" role="tab" aria-selected="true">
-        <span class="tab-num">01</span> Trục Lịch Sử &amp; Nhân Quả
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M3 4H13M3 8H9M3 12H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        <span>Trục Lịch Sử &amp; Nhân Quả</span>
       </button>
-      <button class="tab-btn" data-tab="strata" role="tab" aria-selected="false">
-        <span class="tab-num">02</span> Trục Địa Tầng &amp; Bản Đồ
+      <button class="tab-btn" data-tab="map" role="tab" aria-selected="false">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M2.5 3.5L6 2L10 3.5L13.5 2V12.5L10 14L6 12.5L2.5 14V3.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+          <path d="M6 2V12.5M10 3.5V14" stroke="currentColor" stroke-width="1.2" />
+        </svg>
+        <span>Bản Đồ Mặt Cắt Địa Tầng</span>
       </button>
     </nav>
 
     <div class="toolbar-actions">
       <div class="search-wrap">
-        <input id="search-input" type="search" placeholder="Tìm sự kiện, NPC, Boss, tầng sâu..." autocomplete="off" />
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4" />
+          <path d="M10.5 10.5L13.5 13.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+        </svg>
+        <input id="search-input" type="search" placeholder="Tìm mốc, hang động, Boss, NPC, độ sâu..." autocomplete="off" />
         <div id="search-results" class="search-results hidden"></div>
       </div>
-      <div class="zoom-controls">
-        <button id="btn-zoom-out" title="Thu nhỏ">-</button>
+      <div class="zoom-controls" aria-label="Thu phóng bản đồ">
+        <button id="btn-zoom-out" type="button" title="Thu nhỏ" aria-label="Thu nhỏ">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3.5 8H12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+        </button>
         <span id="zoom-label">100%</span>
-        <button id="btn-zoom-in" title="Phóng to">+</button>
-        <button id="btn-fit" title="Căn vừa màn hình">Fit</button>
+        <button id="btn-zoom-in" type="button" title="Phóng to" aria-label="Phóng to">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3.5V12.5M3.5 8H12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+        </button>
+        <button id="btn-fit" type="button" title="Căn vừa màn hình">Vừa khung</button>
       </div>
     </div>
   </header>
 
   <div class="filter-bar">
-    <div class="filter-group" id="filter-group">
+    <div class="filter-group" id="filter-group-timeline">
       <button class="filter-pill active" data-filter="all">Tất cả nhánh</button>
       <button class="filter-pill" data-filter="core-only">Chỉ Core Build</button>
       <button class="filter-pill" data-filter="faction">Phe Phái &amp; NPC</button>
@@ -49,32 +71,48 @@
       <button class="filter-pill" data-filter="lore">Mảnh 40% &amp; Sinh Thái</button>
     </div>
 
-    <div class="legend">
-      <span class="legend-item"><i class="line-core"></i> Core Build (Cốt truyện chính)</span>
-      <span class="legend-item"><i class="line-branch"></i> Building Phụ (Nhánh rẽ / Hệ thống)</span>
-      <span class="legend-item"><i class="line-loop"></i> Liên kết chéo / Vòng lặp</span>
+    <div class="filter-group hidden" id="filter-group-map">
+      <button class="map-layer-pill active" data-layer="all">Toàn mặt cắt</button>
+      <button class="map-layer-pill" data-layer="regions">Vùng &amp; Hang</button>
+      <button class="map-layer-pill" data-layer="stations">Chuông &amp; NPC</button>
+      <button class="map-layer-pill" data-layer="bosses">Đấu trường Boss</button>
+      <button class="map-layer-pill" data-layer="fragments">Mảnh 40% &amp; Kho báu</button>
+    </div>
+
+    <div class="legend" id="legend-timeline">
+      <span class="legend-item"><i class="line-core"></i> Cốt truyện chính</span>
+      <span class="legend-item"><i class="line-branch"></i> Nhánh rẽ / Hệ thống</span>
+      <span class="legend-item"><i class="line-loop"></i> Liên kết chéo</span>
+    </div>
+
+    <div class="legend hidden" id="legend-map">
+      <span class="legend-item"><i class="line-cable"></i> Cáp tời</span>
+      <span class="legend-item"><i class="line-shortcut"></i> Lối tắt vòng lặp</span>
+      <span class="legend-item"><i class="line-swim"></i> Bơi 360°</span>
+      <span class="legend-item"><i class="line-gate"></i> Cổng phong ấn</span>
     </div>
   </div>
 
   <main class="workspace">
-    <aside class="quick-nav" id="quick-nav" aria-label="Điều hướng nhanh các mốc Core"></aside>
+    <aside class="quick-nav" id="quick-nav" aria-label="Điều hướng nhanh"></aside>
 
     <section class="viewport" id="viewport">
       <div class="canvas-stage" id="canvas-stage">
+        <svg class="map-underlay hidden" id="map-underlay" aria-hidden="true"></svg>
         <svg class="edges-svg" id="edges-svg"></svg>
         <div class="nodes-layer" id="nodes-layer"></div>
       </div>
 
-      <div class="hint-pill" id="hint-pill">
-        Kéo nền để di chuyển • Cuộn chuột để thu/phóng • Bấm vào từng Node để xem nhân quả &amp; nhảy nhánh liên kết
+      <div class="hint-bar" id="hint-pill">
+        Kéo nền để di chuyển · Cuộn chuột để thu/phóng · Bấm vào từng điểm để xem hồ sơ chi tiết &amp; nhảy liên kết
       </div>
     </section>
 
     <aside class="detail-drawer hidden" id="detail-drawer" aria-live="polite">
       <div class="drawer-header">
         <div class="drawer-nav-row">
-          <button id="btn-history-back" class="icon-btn hidden" title="Quay lại node trước">← Quay lại</button>
-          <button id="btn-close-drawer" class="icon-btn" title="Đóng bảng chi tiết">✕</button>
+          <button id="btn-history-back" class="icon-btn hidden" type="button">← Quay lại</button>
+          <button id="btn-close-drawer" class="icon-btn" type="button" title="Đóng bảng chi tiết" aria-label="Đóng bảng chi tiết">Đóng</button>
         </div>
         <div id="drawer-badges" class="drawer-badges"></div>
         <h2 id="drawer-title"></h2>
@@ -85,7 +123,7 @@
   </main>
 
   <script src="data-timeline.js"></script>
-  <script src="data-strata.js"></script>
+  <script src="data-map.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
