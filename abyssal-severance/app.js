@@ -1,8 +1,11 @@
 (() => {
   const TIMELINE = window.LORE_TIMELINE || [];
   const MAP = window.LORE_MAP;
-  const TAB_LABEL = { timeline: 'Lịch Sử', map: 'Bản Đồ Địa Tầng' };
+  const ENTITIES = window.LORE_ENTITIES || [];
+  const POI_ENTITIES = window.LORE_POI_ENTITIES || {};
+  const TAB_LABEL = { timeline: 'Lịch Sử', map: 'Bản Đồ Địa Tầng', codex: 'Bách Khoa Thực Thể' };
   const CAT_LABEL = { core: 'Core', faction: 'Phe / NPC', system: 'Hệ thống', branch: 'Nhánh phụ', lore: 'Lore / Mảnh' };
+  const CODEX_CAT_LABEL = { material: 'Vật liệu', character: 'Nhân vật & Boss', mob: 'Quái vật', gear: 'Trang bị', vessel: 'Hóa Hình', poi: 'Địa điểm' };
 
   const PIN_ICONS = {
     hub: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2V13M4.5 9.5C4.5 11.7 6 13 8 13C10 13 11.5 11.7 11.5 9.5M6 5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
@@ -15,24 +18,31 @@
 
   const byId = {};
   for (const n of TIMELINE) byId[n.id] = { ...n, tab: 'timeline' };
-  for (const p of MAP.pois) byId[p.id] = { ...p, tab: 'map', from: [] };
+  for (const p of MAP.pois) byId[p.id] = { ...p, tab: 'map', from: [], image: `assets/entities/${p.id}.jpg` };
+  for (const e of ENTITIES) byId[e.id] = { ...e, tab: 'codex', from: [], image: `assets/entities/${e.id}.jpg` };
 
   const $ = (id) => document.getElementById(id);
   const viewport = $('viewport'), stage = $('canvas-stage'), svg = $('edges-svg'), underlay = $('map-underlay'), layer = $('nodes-layer');
-  const drawer = $('detail-drawer');
-  const state = { tab: 'timeline', filter: 'all', mapLayer: 'all', selected: null, history: [], scale: 1, tx: 0, ty: 0 };
+  const codexView = $('codex-view'), drawer = $('detail-drawer');
+  const state = { tab: 'timeline', filter: 'all', mapLayer: 'all', codexCat: 'all', selected: null, history: [], scale: 1, tx: 0, ty: 0 };
 
   function render() {
     const isMap = state.tab === 'map';
-    viewport.classList.toggle('is-chart', !isMap);
-    $('filter-group-timeline').classList.toggle('hidden', isMap);
-    $('legend-timeline').classList.toggle('hidden', isMap);
+    const isCodex = state.tab === 'codex';
+    viewport.classList.toggle('hidden', isCodex);
+    codexView.classList.toggle('hidden', !isCodex);
+    document.querySelector('.zoom-controls').classList.toggle('hidden', isCodex);
+    viewport.classList.toggle('is-chart', !isMap && !isCodex);
+    $('filter-group-timeline').classList.toggle('hidden', isMap || isCodex);
+    $('legend-timeline').classList.toggle('hidden', isMap || isCodex);
     $('filter-group-map').classList.toggle('hidden', !isMap);
     $('legend-map').classList.toggle('hidden', !isMap);
+    $('filter-group-codex').classList.toggle('hidden', !isCodex);
     underlay.classList.toggle('hidden', !isMap);
-    svg.classList.toggle('hidden', isMap);
+    svg.classList.toggle('hidden', isMap || isCodex);
 
-    if (isMap) renderMap();
+    if (isCodex) renderCodex();
+    else if (isMap) renderMap();
     else renderTimeline();
     renderQuickNav();
     applyFilter();
@@ -180,7 +190,55 @@
     }
   }
 
+  // ---------- Tab 3: Codex (77 Entities) ----------
+  function getCodexItems() {
+    const pois = MAP.pois.map((p) => ({
+      id: p.id,
+      title: p.title,
+      category: 'poi',
+      meta: `${p.depth || ''} · ${p.meta}`,
+      image: `assets/entities/${p.id}.jpg`
+    }));
+    return [...ENTITIES, ...pois];
+  }
+
+  function renderCodex() {
+    const items = getCodexItems().filter((item) => state.codexCat === 'all' || item.category === state.codexCat);
+    codexView.innerHTML = `<div class="codex-grid">${items.map((item) => `
+      <button class="codex-card${state.selected === item.id ? ' selected' : ''}" type="button" data-id="${item.id}">
+        <img class="codex-card-img" src="${item.image || `assets/entities/${item.id}.jpg`}" alt="${item.title}" loading="lazy" />
+        <div class="codex-card-body">
+          <span class="codex-card-cat">${CODEX_CAT_LABEL[item.category] || 'Thực thể'}</span>
+          <span class="codex-card-title">${item.title}</span>
+          <span class="codex-card-meta">${item.meta}</span>
+        </div>
+      </button>`).join('')}</div>`;
+    codexView.querySelectorAll('.codex-card').forEach((card) => {
+      card.addEventListener('click', () => select(card.dataset.id, true));
+    });
+  }
+
   function renderQuickNav() {
+    if (state.tab === 'codex') {
+      const cats = [
+        ['all', '77 thực thể', 'Tất cả danh mục'],
+        ['material', '12 mục', 'Vật liệu & Khoáng chất'],
+        ['character', '11 mục', 'Nhân vật, Boss & NPC'],
+        ['mob', '14 mục', 'Quái vật Bestiary'],
+        ['gear', '5 mục', 'Trang bị & Vũ khí'],
+        ['vessel', '5 mục', 'Ngũ Hóa Hình (Vessels)'],
+        ['poi', '30 mục', 'Địa điểm Vực Vael']
+      ];
+      $('quick-nav').innerHTML = `<div class="quick-nav-title">Danh Mục Thực Thể</div>` +
+        cats.map(([cat, tag, name]) => `<button class="quick-item${state.codexCat === cat ? ' active' : ''}" type="button" data-codex-cat="${cat}"><span class="quick-item-tag">${tag}</span><span class="quick-item-name">${name}</span></button>`).join('');
+      $('quick-nav').querySelectorAll('[data-codex-cat]').forEach((b) => b.addEventListener('click', () => {
+        state.codexCat = b.dataset.codexCat;
+        document.querySelectorAll('.codex-filter-pill').forEach((x) => x.classList.toggle('active', x.dataset.cat === state.codexCat));
+        renderCodex();
+        renderQuickNav();
+      }));
+      return;
+    }
     if (state.tab === 'map') {
       $('quick-nav').innerHTML = `<div class="quick-nav-title">Trục Độ Sâu (0m – 2,400m)</div>` +
         MAP.pois.filter((p) => p.kind === 'hub' || p.kind === 'region' || p.kind === 'boss')
@@ -209,6 +267,10 @@
   }
 
   function applyFilter() {
+    if (state.tab === 'codex') {
+      codexView.querySelectorAll('.codex-card').forEach((c) => c.classList.toggle('selected', c.dataset.id === state.selected));
+      return;
+    }
     const sel = state.selected && byId[state.selected]?.tab === state.tab ? state.selected : null;
     if (state.tab === 'map') {
       layer.querySelectorAll('.map-pin').forEach((el) => {
@@ -257,6 +319,7 @@
   }
 
   function fit() {
+    if (state.tab === 'codex') return;
     const vw = viewport.clientWidth, vh = viewport.clientHeight;
     if (state.tab === 'map') {
       state.scale = Math.min(0.92, Math.max(0.62, (vw - 48) / MAP.width));
@@ -333,43 +396,63 @@
     applyFilter();
   }));
 
+  document.querySelectorAll('.codex-filter-pill').forEach((b) => b.addEventListener('click', () => {
+    state.codexCat = b.dataset.cat;
+    document.querySelectorAll('.codex-filter-pill').forEach((x) => x.classList.toggle('active', x === b));
+    renderCodex();
+    renderQuickNav();
+  }));
+
   // ---------- drawer ----------
   function select(id, pushHistory) {
     const n = byId[id];
     if (!n) return;
     if (pushHistory && state.selected && state.selected !== id) state.history.push(state.selected);
-    switchTab(n.tab);
+    const keepCodex = state.tab === 'codex' && n.tab === 'map';
+    if (!keepCodex) switchTab(n.tab);
     state.selected = id;
     applyFilter();
-    centerOn(id);
+    if (state.tab !== 'codex') centerOn(id);
     openDrawer(n);
   }
 
   function openDrawer(n) {
     drawer.classList.remove('hidden');
     $('btn-history-back').classList.toggle('hidden', state.history.length === 0);
+    const badgePrimary = n.tab === 'codex'
+      ? (CODEX_CAT_LABEL[n.category] || 'Thực thể')
+      : n.tab === 'map'
+        ? (n.depth || 'Địa điểm')
+        : (n.kind === 'core' ? 'Core Build' : 'Nhánh phụ');
     $('drawer-badges').innerHTML =
-      `<span class="node-kind kind-${n.kind === 'core' || n.kind === 'region' || n.kind === 'hub' ? 'core' : 'branch'}">${n.tab === 'map' ? (n.depth || 'Địa điểm') : (n.kind === 'core' ? 'Core Build' : 'Nhánh phụ')}</span>` +
-      `<span class="node-kind kind-${n.cat === 'core' ? 'core' : n.cat}">${CAT_LABEL[n.cat] || 'Bản đồ'}</span>` +
+      `<span class="node-kind kind-${n.kind === 'core' || n.kind === 'region' || n.kind === 'hub' ? 'core' : 'branch'}">${badgePrimary}</span>` +
+      `<span class="node-kind kind-${n.cat === 'core' ? 'core' : (n.cat || 'lore')}">${CAT_LABEL[n.cat] || (n.tab === 'codex' ? 'Bách Khoa' : 'Bản đồ')}</span>` +
       `<span class="node-kind kind-lore">${TAB_LABEL[n.tab]}</span>`;
     $('drawer-title').textContent = n.title;
     $('drawer-subtitle').textContent = n.meta;
 
     const step = (cls, label, text) => text ? `<div class="causal-step"><div class="causal-step-label ${cls}">${label}</div><p>${text}</p></div>` : '';
-    const causal = step('cause', 'Nguyên nhân', n.cause) + step('', 'Diễn biến', n.event) + step('effect', 'Hệ quả', n.effect);
+    const causal = step('cause', 'Nguyên nhân', n.cause) + step('', 'Diễn biến', n.event) + step('effect', 'Hệ quả', n.effect) +
+      step('', 'Ngoại hình & Thiết kế', n.visual) + step('effect', 'Lý do Lore', n.loreReason);
     const parents = (n.from || []).map(([p]) => [p, 'Node cha trên cây']);
     const children = n.tab === 'timeline' ? TIMELINE.filter((m) => m.from.some(([p]) => p === n.id)).map((m) => [m.id, 'Nhánh dẫn ra']) : [];
     const links = [...(n.links || []), ...parents, ...children].filter(([id], i, arr) => byId[id] && arr.findIndex(([x]) => x === id) === i);
+    const subIds = (POI_ENTITIES[n.id] || []).filter((id) => byId[id]);
 
     $('drawer-body').innerHTML = `
+      ${n.image ? `<div class="drawer-hero"><img src="${n.image}" alt="${n.title}" /></div>` : ''}
       <div class="drawer-quote">${n.summary}</div>
-      ${causal ? `<div><div class="section-label">Chuỗi nhân quả</div><div class="causal-grid">${causal}</div></div>` : ''}
+      ${causal ? `<div><div class="section-label">${n.tab === 'codex' ? 'Đặc tả hình ảnh &amp; Lore' : 'Chuỗi nhân quả'}</div><div class="causal-grid">${causal}</div></div>` : ''}
+      ${subIds.length ? `<div><div class="section-label">Thực thể xuất hiện (${subIds.length}) — bấm để xem</div><div class="sub-entity-grid">${subIds.map((eid) => {
+        const sub = byId[eid];
+        return `<button class="sub-entity-card" type="button" data-id="${eid}"><img class="sub-entity-thumb" src="${sub.image || `assets/entities/${eid}.jpg`}" alt="${sub.title}" loading="lazy" /><span class="sub-entity-info"><span class="sub-entity-name">${sub.title}</span><span class="sub-entity-meta">${sub.meta}</span></span></button>`;
+      }).join('')}</div></div>` : ''}
       ${n.rules && n.rules.length ? `<div><div class="section-label">Luật &amp; số đo</div><ul class="rules-list">${n.rules.map((r) => `<li>${r}</li>`).join('')}</ul></div>` : ''}
       ${n.palette && n.palette.length ? `<div><div class="section-label">Bảng màu</div><div class="palette-row">${n.palette.map(([hex, name]) => `<span class="swatch"><span class="swatch-box" style="background:${hex}"></span>${hex} · ${name}</span>`).join('')}</div></div>` : ''}
       ${links.length ? `<div><div class="section-label">Liên kết (bấm để nhảy)</div><div class="cross-links">${links.map(([id, why]) => `
         <button class="cross-link-btn" type="button" data-id="${id}"><span class="cross-link-main"><span class="cross-link-title">${byId[id].title}</span><span class="cross-link-reason">${why}</span></span>${byId[id].tab !== n.tab ? `<span class="cross-link-tab">→ ${TAB_LABEL[byId[id].tab]}</span>` : ''}</button>`).join('')}</div></div>` : ''}
       <div><div class="section-label">Nguồn lore/</div><div class="sources-box">${(n.sources || []).map((s) => `<span class="source-chip">${s}</span>`).join('')}</div></div>`;
-    $('drawer-body').querySelectorAll('.cross-link-btn').forEach((b) => b.addEventListener('click', () => select(b.dataset.id, true)));
+    $('drawer-body').querySelectorAll('.cross-link-btn, .sub-entity-card').forEach((b) => b.addEventListener('click', () => select(b.dataset.id, true)));
     $('drawer-body').scrollTop = 0;
   }
 

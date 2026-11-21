@@ -37,6 +37,13 @@
         </svg>
         <span>Bản Đồ Mặt Cắt Địa Tầng</span>
       </button>
+      <button class="tab-btn" data-tab="codex" role="tab" aria-selected="false">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="3" y="2.5" width="10" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4" />
+          <path d="M6 5.5H10M6 8H10M6 10.5H8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+        </svg>
+        <span>Bách Khoa Thực Thể</span>
+      </button>
     </nav>
 
     <div class="toolbar-actions">
@@ -79,6 +86,16 @@
       <button class="map-layer-pill" data-layer="fragments">Mảnh 40% &amp; Kho báu</button>
     </div>
 
+    <div class="filter-group hidden" id="filter-group-codex">
+      <button class="codex-filter-pill active" data-cat="all">Tất cả (77)</button>
+      <button class="codex-filter-pill" data-cat="material">Vật liệu (12)</button>
+      <button class="codex-filter-pill" data-cat="character">Nhân vật &amp; Boss (11)</button>
+      <button class="codex-filter-pill" data-cat="mob">Quái vật (14)</button>
+      <button class="codex-filter-pill" data-cat="gear">Trang bị (5)</button>
+      <button class="codex-filter-pill" data-cat="vessel">Hóa Hình (5)</button>
+      <button class="codex-filter-pill" data-cat="poi">Địa điểm (30)</button>
+    </div>
+
     <div class="legend" id="legend-timeline">
       <span class="legend-item"><i class="line-core"></i> Cốt truyện chính</span>
       <span class="legend-item"><i class="line-branch"></i> Nhánh rẽ / Hệ thống</span>
@@ -108,6 +125,8 @@
       </div>
     </section>
 
+    <section class="codex-view hidden" id="codex-view" aria-label="Bách Khoa Thực Thể"></section>
+
     <aside class="detail-drawer hidden" id="detail-drawer" aria-live="polite">
       <div class="drawer-header">
         <div class="drawer-nav-row">
@@ -124,6 +143,7 @@
 
   <script src="data-timeline.js"></script>
   <script src="data-map.js"></script>
+  <script src="data-entities.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
