@@ -96,68 +96,66 @@
     svg.innerHTML = paths;
   }
 
-  // ---------- Tab 2: Bathymetric Cutaway Map ----------
+  // ---------- Tab 2: Bathymetric Cutaway Map (HD-2D Artwork + Vector Overlays) ----------
   function renderMap() {
     const W = MAP.width, H = MAP.height;
     underlay.setAttribute('width', W);
     underlay.setAttribute('height', H);
     underlay.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
-    let s = '';
-    // Strata horizontal bands
+    let s = `<defs>
+      <linearGradient id="seam-blend" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0b1014" stop-opacity="0"/>
+        <stop offset="50%" stop-color="#0b1014" stop-opacity="0.92"/>
+        <stop offset="100%" stop-color="#0b1014" stop-opacity="0"/>
+      </linearGradient>
+    </defs>`;
+
+    // 3 HD-2D painted cutaway slices (x: 100..1500)
+    for (const sl of MAP.slices) {
+      s += `<image href="${sl.href}" x="100" y="${sl.y}" width="1400" height="${sl.h}" preserveAspectRatio="none" />`;
+    }
+
+    // Soft dark vignette seams at slice joins (933 & 1816)
+    s += `<rect x="100" y="${933 - 44}" width="1400" height="88" fill="url(#seam-blend)" />`;
+    s += `<rect x="100" y="${1816 - 44}" width="1400" height="88" fill="url(#seam-blend)" />`;
+
+    // Subtle strata divider lines & right-edge tags
     for (const band of MAP.strataBands) {
-      const y0 = MAP.depthToY(band.d0), y1 = MAP.depthToY(band.d1);
-      s += `<rect x="95" y="${y0}" width="${W - 95}" height="${y1 - y0}" fill="${band.bg}" />`;
-      s += `<line x1="95" y1="${y0}" x2="${W}" y2="${y0}" stroke="#253340" stroke-width="1" stroke-dasharray="4 4" />`;
-      s += `<text x="${W - 24}" y="${y0 + 26}" text-anchor="end" class="map-band-label">${band.label}</text>`;
-      s += `<text x="${W - 24}" y="${y0 + 44}" text-anchor="end" class="map-band-meta">${band.d0}m – ${band.d1}m · ${band.atm} · ${band.light}</text>`;
+      const y0 = MAP.depthToY(band.d0);
+      s += `<line x1="100" y1="${y0}" x2="${W}" y2="${y0}" stroke="rgba(228,236,238,0.22)" stroke-width="1" stroke-dasharray="5 5" />`;
+      s += `<rect x="${W - 315}" y="${y0 + 8}" width="302" height="38" rx="5" fill="rgba(11,16,20,0.78)" stroke="#253340" stroke-width="1" />`;
+      s += `<text x="${W - 22}" y="${y0 + 24}" text-anchor="end" class="map-band-label">${band.label}</text>`;
+      s += `<text x="${W - 22}" y="${y0 + 39}" text-anchor="end" class="map-band-meta">${band.d0}m – ${band.d1}m · ${band.atm}</text>`;
     }
 
-    // Sea surface sky strip & Kael-Var silhouette
-    s += `<rect x="0" y="0" width="${W}" height="120" fill="#101a22" />`;
-    s += `<path d="M95,120 Q280,114 480,120 T880,120 T1280,120 L1500,120" fill="none" stroke="#8ab7c2" stroke-width="2" />`;
-    s += `<text x="120" y="88" class="map-band-label">Bạch Hải (0m) — Cảng Kael-Var · Thành Đá Muối Salthold · Wick-Isles</text>`;
-
-    // Geology cutaway walls, caverns, brine pools, oil dome, Leviathan bones
-    for (const g of MAP.geology) {
-      const sw = g.type === 'bone' ? 4 : g.type === 'brine' ? 2 : 1.5;
-      s += `<path d="${g.d}" fill="${g.fill}" stroke="${g.stroke}" stroke-width="${sw}" stroke-linecap="round" />`;
-    }
-
-    // 40m Anchor Core monument at 2,400m
-    s += `<g opacity="0.85">
-      <line x1="760" y1="2275" x2="760" y2="2425" stroke="#c29b54" stroke-width="4" />
-      <path d="M720,2385 C720,2420 800,2420 800,2385" fill="none" stroke="#c29b54" stroke-width="4" stroke-linecap="round" />
-      <line x1="735" y1="2305" x2="785" y2="2305" stroke="#c29b54" stroke-width="3" />
-      <circle cx="760" cy="2275" r="8" fill="none" stroke="#e4ecee" stroke-width="2" />
-    </g>`;
-
-    // Depth ruler (left margin x: 0..95)
-    s += `<rect x="0" y="120" width="95" height="${H - 120}" fill="#0c1218" />`;
-    s += `<line x1="95" y1="120" x2="95" y2="${H}" stroke="#374b5c" stroke-width="1.5" />`;
+    // Depth ruler (left margin x: 0..100)
+    s += `<rect x="0" y="0" width="100" height="${H}" fill="#0c1218" />`;
+    s += `<line x1="100" y1="0" x2="100" y2="${H}" stroke="#374b5c" stroke-width="1.5" />`;
     const milestones = new Set([0, 180, 340, 450, 600, 760, 850, 1280, 1400, 2050, 2400]);
     for (let d = 0; d <= 2400; d += 100) {
       const y = MAP.depthToY(d);
       const major = milestones.has(d) || d % 400 === 0;
-      s += `<line x1="${major ? 68 : 80}" y1="${y}" x2="95" y2="${y}" stroke="${major ? '#c29b54' : '#374b5c'}" stroke-width="${major ? 1.5 : 1}" />`;
-      if (major) s += `<text x="62" y="${y + 4}" text-anchor="end" class="map-ruler-text">${d}m</text>`;
+      s += `<line x1="${major ? 72 : 84}" y1="${y}" x2="100" y2="${y}" stroke="${major ? '#c29b54' : '#374b5c'}" stroke-width="${major ? 1.5 : 1}" />`;
+      if (major) s += `<text x="66" y="${y + 4}" text-anchor="end" class="map-ruler-text">${d}m</text>`;
     }
     for (const d of milestones) {
       if (d % 100 === 0) continue;
       const y = MAP.depthToY(d);
-      s += `<line x1="68" y1="${y}" x2="95" y2="${y}" stroke="#c29b54" stroke-width="1.5" />`;
-      s += `<text x="62" y="${y + 4}" text-anchor="end" class="map-ruler-text">${d}m</text>`;
+      s += `<line x1="72" y1="${y}" x2="100" y2="${y}" stroke="#c29b54" stroke-width="1.5" />`;
+      s += `<text x="66" y="${y + 4}" text-anchor="end" class="map-ruler-text">${d}m</text>`;
     }
 
     // Routes (cables, shortcuts, 360 swim shafts, gates)
     for (const r of MAP.routes) {
       if (r.type === 'gate') {
         s += `<line x1="${r.x1}" y1="${r.y1}" x2="${r.x2}" y2="${r.y2}" stroke="#b8534b" stroke-width="4" />`;
-        s += `<text x="${(r.x1 + r.x2) / 2}" y="${r.y1 - 7}" text-anchor="middle" class="map-route-label">${r.label}</text>`;
+        s += `<rect x="${(r.x1 + r.x2) / 2 - 125}" y="${r.y1 - 24}" width="250" height="18" rx="4" fill="rgba(11,16,20,0.86)" stroke="#b8534b" stroke-width="1" />`;
+        s += `<text x="${(r.x1 + r.x2) / 2}" y="${r.y1 - 11}" text-anchor="middle" class="map-route-label">${r.label}</text>`;
       } else {
-        const stroke = r.type === 'cable' ? '#c29b54' : r.type === 'cable-broken' ? '#6e828c' : r.type === 'shortcut' ? '#c97b3b' : '#4d9aa1';
-        const dash = r.type === 'shortcut' ? '7 5' : r.type === 'cable-broken' ? '3 5' : '';
-        s += `<path d="${r.d}" fill="none" stroke="${stroke}" stroke-width="${r.type === 'swim' ? 3 : 2}" ${dash ? `stroke-dasharray="${dash}"` : ''} opacity="0.88" />`;
+        const stroke = r.type === 'cable' ? '#c29b54' : r.type === 'cable-broken' ? '#9eb0b8' : r.type === 'shortcut' ? '#c97b3b' : '#4d9aa1';
+        const dash = r.type === 'shortcut' ? '7 5' : r.type === 'cable-broken' ? '4 5' : '';
+        s += `<path d="${r.d}" fill="none" stroke="${stroke}" stroke-width="${r.type === 'swim' ? 3 : 2.2}" ${dash ? `stroke-dasharray="${dash}"` : ''} opacity="0.92" />`;
       }
     }
     underlay.innerHTML = s;
