@@ -279,7 +279,11 @@
     L('gd-ceremony', 'gd-feel', 'open', 'Vũ đạo Chết, Nghi lễ Rơi đồ & Vi Phản Hồi', '17 · 12 hạng mục micro-feel',
       'Vũ đạo chết 3 cấp (Quái thường vỡ theo 4 chất liệu / Mini-Boss slow-mo 0,25× / 5 Boss Chính Death Throe 3,5–4,5 s xóa đạn thừa), rơi & nhặt 5 cấp (Sv leo ngũ cung → 5 Cổ Vật biến hình 4,8–5,5 s + Test-Chamber Lock), prompt thế giới 1 lần, squash/stretch, camera look-ahead & Chuông Lặn.',
       'Nghiên cứu sâu 10× đối chiếu HK, Ori, Celeste, Nine Sols, Dead Cells, Dread, HLD, Hades, GDC (Nijman, Eiserloh, Keren, Sakurai).',
-      ['Xóa toàn bộ đạn thừa tại f12 khi hạ Boss/Mini-Boss (chống chết chéo).', 'Test-Chamber Lock ≤ 10 s thay mọi hộp thoại dài.'], '17-game-feel-juice-and-ceremony.md', [R('R13')])
+      ['Xóa toàn bộ đạn thừa tại f12 khi hạ Boss/Mini-Boss (chống chết chéo).', 'Test-Chamber Lock ≤ 10 s thay mọi hộp thoại dài.'], '17-game-feel-juice-and-ceremony.md', [R('R13')]),
+    L('gd-audio-vfx', 'gd-feel', 'open', 'Phím S (PC), Nhạc–SFX 8 Khu & VFX 10 Họ Cổng', '18 · 38 SFX + 14 VFX P0',
+      'Kiểm toán phím S trên bố cục AD+Space+JKL (W không làm Nhảy để S+Space/S+J/S+K 0% kẹt ngón); Bản đồ nhạc & ambience 8 khu cùng hệ khóa âm (D/A/G minor) để crossfade 1,2 s êm; danh mục SFX người chơi (4 mặt sàn), 4 chất liệu quái, 5 Boss + B5 3 pha + Endgame mở lọc 20 kHz; và bảng SFX+VFX cho 10 họ cổng, khám phá khu mới & cơ chế map.',
+      'Gareth Coker (Ori BAFTA), Christopher Larkin (HK leitmotif), Power Up Audio (Celeste surface footsteps), Subnautica, cộng đồng PC HK/Dead Cells/Nine Sols.',
+      ['Khóa Preset 1 PC: AD + Space + J/K/L (S = ngồi/bò/nhìn xuống/xuyên sàn/Pogo/Dậm).', 'Ngân sách Vertical Slice Tầng I: đúng 38 SFX P0 + 14 VFX P0.'], '18-audio-music-sfx-and-world-vfx.md', [R('R14')])
   );
 
   window.LORE_DESIGN = [root, ...branches, ...leaves];

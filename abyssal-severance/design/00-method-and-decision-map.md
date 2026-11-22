@@ -45,6 +45,7 @@ Quy tắc: **không có bằng chứng thì ghi rõ "suy luận" và nêu cách 
  04+09+10 ─► 15 Âm thanh 4 dải tần, Zero-Loss Death, Bản đồ Ảnh Ký Ức & Trợ năng (R12)
  tất cả ─► 16 Kiểm toán 10 trụ cột & 8 lỗi P0/P1 đã vá (R12)
  11+14+15 ─► 17 Vũ đạo Chết 3 cấp, Nghi lễ Rơi/Nhặt 5 cấp, Zero-UI Onboarding & Vi Phản Hồi (R13)
+ 02+08+15+17 ─► 18 Phím S (PC AD+Space+JKL), Nhạc & Ambience 8 khu, SFX Toàn Game & VFX 10 Họ Cổng (R14)
 ```
 
 Đổi một con số ở tầng trên (ví dụ độ dài dash) → phải rà lại mọi tầng dưới có tham chiếu. Mỗi file ghi rõ "phụ thuộc vào" và "bị phụ thuộc bởi".
