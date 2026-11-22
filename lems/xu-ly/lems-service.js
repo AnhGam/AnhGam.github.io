@@ -49,17 +49,26 @@
     constructor(data) {
       Object.assign(this, data);
     }
-    async guiDon(service, input) {
+    async guiDonMuon(service, input) {
       return service.createRequest(this.id, input);
     }
-    async xemDon(service) {
+    async xemDonCuaMinh(service) {
       return service.listRequests((r) => sameId(r.student_id, this.id));
+    }
+    async guiDon(service, input) {
+      return this.guiDonMuon(service, input);
+    }
+    async xemDon(service) {
+      return this.xemDonCuaMinh(service);
     }
   }
 
   class GiaoVien {
     constructor(data) {
       Object.assign(this, data);
+    }
+    async xemDonChoDuyet(service) {
+      return service.listRequests((r) => sameId(r.teacher_id, this.id) && r.overall_status === STATUS.SUBMITTED);
     }
     async duyetDon(service, requestId, comment) {
       return service.approveRequest(this.id, requestId, comment);
@@ -73,14 +82,20 @@
     constructor(data) {
       Object.assign(this, data);
     }
-    async xacNhanDon(service, requestId) {
+    async xacNhanDon(service, requestId, _thoiDiem) {
       return service.confirmRequest(this.id, requestId);
     }
-    async banGiao(service, requestId, assignments) {
+    async xacNhanBanGiao(service, requestId, assignments, _thoiDiem) {
       return service.dispatchRequest(this.id, requestId, assignments);
     }
-    async nhanTra(service, requestId, results) {
+    async xacNhanNhanLai(service, requestId, results, _thoiDiem) {
       return service.checkInRequest(this.id, requestId, results);
+    }
+    async banGiao(service, requestId, assignments) {
+      return this.xacNhanBanGiao(service, requestId, assignments);
+    }
+    async nhanTra(service, requestId, results) {
+      return this.xacNhanNhanLai(service, requestId, results);
     }
   }
 
@@ -95,6 +110,31 @@
       }
       this.overall_status = nextStatus;
       return nextStatus;
+    }
+    duyet() {
+      return this.doiTrangThai(STATUS.PENDING_CONFIRM);
+    }
+    tuChoi(lyDo) {
+      if (lyDo !== undefined) this.teacher_comment = lyDo;
+      return this.doiTrangThai(STATUS.REJECTED);
+    }
+    xacNhan(thoiDiem) {
+      if (thoiDiem !== undefined) this.confirmed_at = thoiDiem;
+      return this.doiTrangThai(STATUS.TEACHER_APPROVED);
+    }
+    hetGio(thoiDiem) {
+      if (thoiDiem !== undefined && !this.hetGioChoXacNhan(thoiDiem)) {
+        throw new BusinessError(`Đơn ${this.request_code} chưa hết hạn xác nhận 15 phút.`);
+      }
+      return this.doiTrangThai(STATUS.REJECTED);
+    }
+    banGiao(thoiDiem) {
+      if (thoiDiem !== undefined) this.actual_checkout_time = thoiDiem;
+      return this.doiTrangThai(STATUS.BORROWING);
+    }
+    nhanLai(thoiDiem) {
+      if (thoiDiem !== undefined) this.actual_return_time = thoiDiem;
+      return this.doiTrangThai(STATUS.COMPLETED);
     }
     hetGioChoXacNhan(nowMs) {
       return this.overall_status === STATUS.PENDING_CONFIRM && nowMs - this.pending_since >= CONFIRM_WINDOW_MS;
@@ -220,6 +260,7 @@
     const confirmExpired = (req) => new DonMuon(req).hetGioChoXacNhan(clock().getTime());
 
     async function expireOne(req) {
+      assertTransition(req, STATUS.REJECTED);
       await releaseHoldForRequest(req.id);
       await db.update('borrow_requests', req.id, {
         overall_status: STATUS.REJECTED,
@@ -230,6 +271,10 @@
     }
 
     async function sweepExpired() {
+      if (typeof db.quetQuaHan === 'function') {
+        await db.quetQuaHan();
+        return;
+      }
       const expired = await db.where('borrow_requests', confirmExpired);
       if (expired.length) {
         await db.transaction(async () => {
@@ -395,9 +440,11 @@
           created_at: t,
           updated_at: t,
         });
-        await db.update('borrow_requests', req.id, {
-          request_code: `REQ-${t.slice(0, 10).replace(/-/g, '')}-${String(req.id).padStart(4, '0')}`,
-        });
+        if (!req.request_code || String(req.request_code).startsWith('TMP-')) {
+          await db.update('borrow_requests', req.id, {
+            request_code: `REQ-${t.slice(0, 10).replace(/-/g, '')}-${String(req.id).padStart(4, '0')}`,
+          });
+        }
 
         for (const l of lines) {
           for (let i = 0; i < l.quantity; i++) {
@@ -446,9 +493,9 @@
         }
       }
 
-      if (typeof db.rpc === 'function') {
+      if (typeof db.duyetDon === 'function') {
         try {
-          await db.rpc('duyet_don_muon', { p_don_id: Number(requestId), p_comment: String(comment || '').trim() });
+          await db.duyetDon(requestId, comment);
           return getRequestDetail(requestId);
         } catch (err) {
           if (err && (err.code === '42501' || err.code === 'P0001' || err.code === 'P0002' || err.status === 400)) {
@@ -486,9 +533,9 @@
     async function confirmRequest(managerId, requestId) {
       await getUser(managerId, 'LAB_MANAGER', MSG.CHI_CAN_BO_XAC_NHAN);
 
-      if (typeof db.rpc === 'function') {
+      if (typeof db.xacNhanDon === 'function') {
         try {
-          await db.rpc('xac_nhan_don_muon', { p_don_id: Number(requestId) });
+          await db.xacNhanDon(requestId);
           return getRequestDetail(requestId);
         } catch (err) {
           if (err && (err.code === '42501' || err.code === 'P0001' || err.code === 'P0002' || err.status === 400)) {
@@ -504,6 +551,7 @@
         fail('Đơn đã quá hạn xác nhận 15 phút, thiết bị đã trả về kho.');
       }
       if (req.overall_status !== STATUS.PENDING_CONFIRM) fail('Đơn không ở trạng thái Chờ xác nhận.');
+      assertTransition(req, STATUS.TEACHER_APPROVED);
       return db.transaction(async () => {
         await db.update('borrow_requests', req.id, {
           manager_id: managerId,
@@ -670,6 +718,7 @@
           });
         };
 
+        const brokenModelIds = [];
         for (const { line, condition, notes } of checks) {
           const item = await db.find('equipment_items', line.assigned_item_id);
           const incidentType = INCIDENT_BY_CONDITION[condition];
@@ -691,15 +740,19 @@
               ? { operational_status: 'MAINTENANCE', condition_state: 'BROKEN' }
               : { operational_status: 'IN_STOCK', condition_state: condition === 'MINOR_FLAW' ? 'FAIR' : item.condition_state }
           );
-          if (incidentType && db.isSupabase) {
-            const m = await db.find('equipment_models', line.model_id);
-            if (m) await db.update('equipment_models', m.id, { tong_so: Math.max(0, Number(m.tong_so || 0) - 1) });
-          }
+          if (incidentType) brokenModelIds.push(line.model_id);
           await db.update('borrow_request_items', line.id, { item_dispatch_status: incidentType ? 'INCIDENT' : 'RETURNED' });
           if (incidentType) await report(item.id, incidentType, notes || `Thiết bị ${item.asset_barcode}: ${condition}`);
         }
 
+        // Nhả so_dang_giu trước rồi mới giảm tong_so để không bao giờ vi phạm CHECK (so_dang_giu <= tong_so)
         await releaseHoldForRequest(req.id);
+        for (const modelId of brokenModelIds) {
+          const m = await db.find('equipment_models', modelId);
+          if (m && typeof m.tong_so === 'number') {
+            await db.update('equipment_models', m.id, { tong_so: Math.max(0, m.tong_so - 1) });
+          }
+        }
 
         if (booking) {
           await db.update('room_booking_details', booking.id, { booking_status: 'COMPLETED' });
@@ -726,9 +779,11 @@
 
         if (incidents > 0) await db.update('users', req.student_id, { status: 'SUSPENDED' });
 
+        const nextStatus = incidents > 0 ? STATUS.INCIDENT_PENDING : STATUS.COMPLETED;
+        assertTransition(req, nextStatus);
         await db.update('borrow_requests', req.id, {
           actual_return_time: t,
-          overall_status: incidents > 0 ? STATUS.INCIDENT_PENDING : STATUS.COMPLETED,
+          overall_status: nextStatus,
           updated_at: t,
         });
         return getRequestDetail(req.id);

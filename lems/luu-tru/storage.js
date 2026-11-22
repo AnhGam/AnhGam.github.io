@@ -218,7 +218,7 @@
 
   function toDbRequestRow(r) {
     const out = {};
-    if ('request_code' in r) out.ma_don = r.request_code || `TMP-${Date.now()}`;
+    if ('request_code' in r) out.ma_don = r.request_code || '';
     if ('student_id' in r) out.ma_nguoi_muon = r.student_id;
     if ('teacher_id' in r) out.ma_giao_vien = r.teacher_id;
     if ('manager_id' in r) out.ma_can_bo = r.manager_id;
@@ -417,6 +417,28 @@
           headers: headers(),
           body: JSON.stringify(params || {}),
         });
+      },
+
+      async duyetDon(requestId, comment) {
+        return this.rpc('duyet_don_muon', {
+          p_don_id: Number(requestId),
+          p_comment: String(comment || '').trim(),
+        });
+      },
+
+      async xacNhanDon(requestId) {
+        const res = await this.rpc('xac_nhan_don_muon', { p_don_id: Number(requestId) });
+        if (res && res.ok === false) {
+          const err = new Error(res.message || 'Không thể xác nhận đơn.');
+          err.status = 400;
+          err.code = 'P0001';
+          throw err;
+        }
+        return res;
+      },
+
+      async quetQuaHan() {
+        return this.rpc('tu_huy_don_qua_han', {});
       },
 
       async transaction(work) {
