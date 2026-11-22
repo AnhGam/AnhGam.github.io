@@ -89,7 +89,7 @@ Số dưới đây là **output của `_calc/metrics.py`** (mô phỏng bước 
 | **Vấn đề** | Đôi Chân mở đạp tường. Bám bao lâu, đạp cao bao nhiêu, có tốn stamina không. Dậm nặng là gì. |
 | **Chọn — Đạp tường** | Chạm tường khi đang rơi ⇒ trượt bám **60 px/s**. **Chỉ đạp được khi vy ≤ 0** (ở đỉnh hoặc đang rơi, sát tường ≤ 4 px). Đạp ⇒ bật ngược **vx 220 px/s** (khóa hướng 0,15 s) + **vy 330 px/s**. Vì luôn đạp từ đỉnh nên mỗi cú lên **cố định 98 px = 6,15 ô** (330² ÷ (2 × 554)), mất **0,6 s** mỗi cú. Bám tường tốn **10 stamina/s**, mỗi cú đạp **15 stamina**. |
 | **Vì sao** | 1) **Độ cao mỗi cú phải cố định** để người dựng map tính được. Nếu cho đạp lúc đang bay lên thì mỗi cú lên 60–98 px tùy thời điểm bấm (người soát phát hiện); luật "chỉ đạp khi vy ≤ 0" cho đúng một giá trị. 2) Nhịp 0,6 s mỗi bên: chậm, nặng, đúng thân chì, vẫn leo ~165 px/s (gần tốc đi). 3) Stamina 100 / 15 ≈ 6 cú ⇒ leo tối đa **~37 ô (1,6 màn)** không nghỉ; giếng dài hơn phải có **gờ nghỉ** (Q2.7). Đây là quyết định "can I make it" có chủ ý (`R6` §4.2). Celeste: cú đạp từ trạng thái leo tốn 27,5/110 ≈ 4 cú mỗi thanh (`R6` §4.1). 4) Ngưỡng 4 px: Celeste 3 px ở 320 px (~6 px ở 640), Super Metroid 6 px; lấy 4 px vì hitbox ta rộng hơn. |
-| **Chọn — Dậm Nặng** | Trên không giữ ↓ + chém ⇒ lao thẳng xuống **600 px/s**. Đáp: sóng chấn 2 ô mỗi bên (sát thương nhẹ, đẩy quái), **phá ván mục / sàn sập**, **đè nút áp suất**, **nảy cao trên mặt hồ muối** (Q2.8). |
+| **Chọn — Dậm Nặng** | Trên không **↓ + Dash** (PC: `S + K`; đã tách khỏi Pogo `↓ + Chém`, `16` P0) ⇒ lao thẳng xuống **600 px/s**. Đáp: sóng chấn 2 ô mỗi bên (sát thương nhẹ, đẩy quái), **phá ván mục / sàn sập**, **đè nút áp suất**, **nảy cao trên mặt hồ muối** (Q2.8). |
 | **Vì sao** | Một động tác phục vụ cả di chuyển, chiến đấu lẫn tương tác (luật "mỗi khóa ≥ 2–3 công dụng", `R6` §7.2). Tiền lệ: HK Desolate Dive (phá sàn + sát thương + i-frame), Ori Stomp (`R6` §1.2). Lore: "Dậm Nặng phá ván mục & bám đất" (five-vessels-of-form). |
 
 ## Q2.5 — Móc Neo (Anchor-Grapple, F2)
@@ -161,13 +161,20 @@ Số dưới đây là **output của `_calc/metrics.py`** (mô phỏng bước 
 
 | Thông số | Giá trị | Nguồn |
 |---|---|---|
-| Coyote time (nhảy sau khi rời mép) | **6 f (0,1 s)** | Celeste 0,1 s; HK 40 ms; Silksong 80 ms (`R1` §5). Lấy mức dễ nhất vì hero nặng, bước dài |
-| Nhớ phím nhảy (jump buffer) | **6 f** | `R8` §4.3 |
+| Coyote time (nhảy sau khi rời mép) | **6 f (0,1 s)** | Celeste `JumpGraceTime = 0.1f` (đọc thẳng `Player.cs` công khai; thực dùng được 5 f vì bộ đếm trừ trước); Mario Odyssey 8 f; HK 40 ms; Silksong 80 ms (`R1` §5). Khoảng khuyên dùng 5–8 f (gamejuice), action platformer 90–140 ms (gamineai). Lấy 6 f vì hero nặng, bước dài |
+| Nhớ phím nhảy (jump buffer) | **7 f (0,117 s)** | Celeste 0,08 s (~5 f); khoảng khuyên dùng 6–9 f, buffer nên dài hơn coyote một chút (gamejuice); action platformer 100–150 ms (gamineai). Sửa 6 → 7 f cho khớp `15` Q15.4 và greybox |
 | Nhớ phím dash | **9 f (0,15 s)** | HK nhớ dash 200 ms (`R1` §5) |
 | Nhớ phím chém | **7 f** | `R3` §4.4 (đòn đánh chịu được 6–8 f) |
-| Chỉnh góc khi nhảy cụng mép trần | đẩy ngang tối đa **8 px** | Celeste 4 px / hitbox 8 = 50%; ta 8 / 16 = 50% |
-| Chỉnh góc khi dash chạm mép gờ | nâng lên tối đa **8 px** | Celeste "dash corner correction" |
-| Nhận đạp tường | cách tường ≤ 4 px | Q2.4 |
+| Chỉnh góc khi nhảy cụng mép trần | đẩy ngang tối đa **8 px** | Celeste `UpwardCornerCorrection = 4` ở 320 px ⇒ 8 px ở 640 px |
+| Chỉnh góc khi dash chạm mép gờ | nâng lên tối đa **8 px** | Celeste `DashCornerCorrection = 4` (chỉ khi dash) ⇒ 8 px |
+| **Nảy lên gờ khi nhảy hụt sát mép (Ledge Pop)** — *mới* | chân thấp hơn mặt gờ **≤ 6 px** (0,375 ô), đang ở đỉnh hoặc rơi (vy ≥ −40) và phía trên trống ⇒ đặt luôn lên gờ, giữ tốc ngang | Celeste chỉ làm khi dash; ta mở rộng cho nhảy thường vì hero nặng, rơi nhanh (790 px/s²) nên hụt vài px là chuyện thường. **Suy luận**, đo playtest: số lần "trượt gờ trong gang tấc" ≈ 0 mà gờ 7 ô vẫn không lên được bằng F0 (6 px < lề 1 ô = 16 px nên không phá cổng gờ, `01` Q1.5) |
+| **Đứng dậy bị trần chặn (Duck Correct)** — *mới* | thả `S` khi một phần đầu còn dưới trần ⇒ tự trượt ngang tối đa **8 px** ra chỗ đứng được | Celeste `DuckCorrectCheck = 4` (320 px) |
+| **Cụng trần không mất hết đà (Ceiling Grace)** — *mới* | cụng trần trong **3 f** đầu của cú nhảy thì không hủy thời gian giữ-nút-nhảy-cao | Celeste `CeilingVarJumpGrace = 0.05f` |
+| **Giữ tốc khi quệt góc tường (Wall Speed Retention)** — *mới* | chạm tường ngang rồi tường biến mất / trượt qua góc trong **4 f** ⇒ trả lại tốc ngang cũ | Celeste `WallSpeedRetentionTime = 0.06f` |
+| **Xuyên & nảy lên sàn mỏng khi dash** — *mới* | dash ngang chạm cạnh sàn một chiều ⇒ đặt lên mặt sàn | Celeste mẹo #6 "semi-solid popping" (Thorson 2020) |
+| **Trữ đà bệ di động (Lift Momentum)** — *mới* | nhảy khỏi bệ đang chạy ⇒ cộng tốc bệ (trần ngang 500 px/s, dọc −260 px/s); trữ thêm **6 f** sau khi bệ dừng | Celeste mẹo #7, `LiftXCap = 250`, `LiftYCap = −130` ở 320 px (×2) |
+| Nhận đạp tường | cách tường ≤ 4 px | Q2.4 (Celeste thực tế `WallJumpCheckDist = 3` ở 320 px ≈ 6 px; giữ 4 px, nâng lên 6 nếu playtest thấy hụt) |
+| Hurtbox chân | **2 px đáy** không nhận sát thương (quệt mép gai không chết) | Celeste hurtbox kết thúc trên chân 2 px; `01` Q1.2 hurtbox 85% cao |
 | Ra khỏi vùng bơi | 0,12 s treo | Q2.6 |
 | Mép vực "dính" | đi chậm (thả cần analog < 30%) không rơi khỏi mép | đề xuất (suy luận); đo ở playtest |
 

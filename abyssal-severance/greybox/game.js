@@ -282,7 +282,7 @@
 
     // Jump + coyote (6f) + buffer (7f) + wall-kick (vy<=0, +6.15ô)
     if (P.grounded) { P.coyote = 6; P.airDashLeft = f.airDashes; } else if (P.coyote > 0) P.coyote--;
-    if (pressed('KeyW', 'Space', 'KeyZ', 'ArrowUp')) P.jbuf = 7; else if (P.jbuf > 0) P.jbuf--;
+    if (pressed('Space', 'KeyZ')) P.jbuf = 7; else if (P.jbuf > 0) P.jbuf--;
 
     const onWall = !P.grounded && P.wallDir !== 0 && f.wallKick && P.vy >= 0;
     if (onWall && P.stam > 0) { P.vy = Math.min(P.vy, 55); P.stam = Math.max(0, P.stam - 16 * DT); }
@@ -298,20 +298,23 @@
       }
     }
     // Variable jump cut
-    if (!down('KeyW', 'Space', 'KeyZ', 'ArrowUp') && P.vy < -90) P.vy *= 0.85;
+    if (!down('Space', 'KeyZ') && P.vy < -90) P.vy *= 0.85;
 
     // Gravity with apex half-gravity
     if (P.dashT === 0 && P.grappleT === 0) {
       let g = P.vy < 0 ? f.gR : f.gF;
-      if (down('KeyW', 'Space', 'KeyZ', 'ArrowUp') && Math.abs(P.vy) < 40) g *= 0.5;
+      if (down('Space', 'KeyZ') && Math.abs(P.vy) < 40) g *= 0.5;
       P.vy = Math.min(540, P.vy + g * DT);
     }
 
-    // Move & collide X
+    // Move & collide X + Ledge Pop (02 Q2.9: jump 6 px, dash 8 px — feet barely below ledge top get lifted on)
+    const freeAt = (x, y) => !world.sols.some(s => aabb({ x, y, w: P.w, h: P.h }, s));
     P.x = clamp(P.x + P.vx * DT, 0, world.w - P.w);
     P.wallDir = 0;
     for (const s of world.sols) {
       if (aabb(P, s)) {
+        const lift = P.y + P.h - s.y, pop = P.dashT > 0 ? 8 : 6;
+        if (!P.grounded && P.vy >= -40 && lift > 0 && lift <= pop && freeAt(P.x, s.y - P.h)) { P.y = s.y - P.h; P.vy = 0; continue; }
         if (P.vx > 0) { P.x = s.x - P.w; P.wallDir = 1; }
         else if (P.vx < 0) { P.x = s.x + s.w; P.wallDir = -1; }
         P.vx = 0;
@@ -333,7 +336,16 @@
             P.fallDist = 0; P.stomping = false;
           }
         }
-        else if (P.vy < 0) { P.y = s.y + s.h; }
+        else if (P.vy < 0) {
+          // Ceiling corner correction: slide up to 8 px sideways around a head-bonk (Celeste 4 px @320p)
+          const order = P.vx < 0 ? [-1, 1] : [1, -1];
+          let nudged = false;
+          for (let i = 1; i <= 8 && !nudged; i++) for (const sg of order) {
+            if (!nudged && freeAt(P.x + sg * i, P.y)) { P.x += sg * i; nudged = true; }
+          }
+          if (nudged) continue;
+          P.y = s.y + s.h;
+        }
         P.vy = 0;
       }
     }
