@@ -1,0 +1,57 @@
+name: Triển khai GitHub Pages và nạp cấu hình Supabase
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Sinh tệp cấu hình Supabase từ GitHub Secrets (không lưu vào git)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Thiếu GitHub Secrets SUPABASE_URL hoặc SUPABASE_ANON_KEY" >&2
+            exit 1
+          fi
+          node -e '
+            const fs = require("fs");
+            const cfg = "window.LEMS_CONFIG = " + JSON.stringify({
+              SUPABASE_URL: process.env.SUPABASE_URL,
+              SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY
+            }, null, 2) + ";\n";
+            fs.writeFileSync("se100/ghep/cau-hinh.js", cfg, "utf8");
+            fs.writeFileSync("lems/ghep/cau-hinh.js", cfg, "utf8");
+          '
+
+      - name: Đóng gói artifact cho GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Triển khai lên GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

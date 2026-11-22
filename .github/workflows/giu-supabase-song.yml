@@ -10,9 +10,9 @@ on:
 
 jobs:
   ping:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - name: Gọi Supabase
+      - name: Gọi Supabase (kèm retry lỗi DNS và dự phòng 1.1.1.1)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -20,7 +20,38 @@ jobs:
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
             echo "Chưa đặt secret SUPABASE_URL / SUPABASE_ANON_KEY, bỏ qua."; exit 0
           fi
-          # Endpoint cấu hình auth: khoá publishable gọi được, không phụ thuộc tên bảng.
-          code=$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_ANON_KEY" "$SUPABASE_URL/auth/v1/settings")
-          echo "HTTP $code"
-          [ "$code" = "200" ]
+          base_url="${SUPABASE_URL%/}"
+          target="$base_url/auth/v1/settings"
+
+          # Dùng --retry-all-errors để curl thử lại cả lỗi DNS exit code 6.
+          set +e
+          code=$(curl -sS -o /dev/null -w '%{http_code}' \
+            --retry 4 --retry-delay 5 --retry-all-errors \
+            --connect-timeout 10 --max-time 20 \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            "$target")
+          rc=$?
+
+          # Nếu DNS mặc định của runner vẫn lỗi code 6, phân giải qua DNS công cộng dự phòng.
+          if [ "$rc" -eq 6 ]; then
+            host=$(printf '%s' "$base_url" | sed -E 's#^https?://([^/:]+).*#\1#')
+            ip=""
+            for resolver in 1.1.1.1 8.8.8.8; do
+              ip=$(dig +short @"$resolver" "$host" A 2>/dev/null | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
+              [ -n "$ip" ] && break
+            done
+            if [ -n "$ip" ]; then
+              echo "DNS mặc định lỗi, dùng DNS dự phòng cho $host -> $ip"
+              code=$(curl -sS -o /dev/null -w '%{http_code}' \
+                --retry 3 --retry-delay 4 --retry-all-errors \
+                --connect-timeout 10 --max-time 20 \
+                --resolve "$host:443:$ip" \
+                -H "apikey: $SUPABASE_ANON_KEY" \
+                "$target")
+              rc=$?
+            fi
+          fi
+          set -e
+
+          echo "curl_exit=$rc HTTP=$code"
+          [ "$rc" -eq 0 ] && [ "$code" = "200" ]
