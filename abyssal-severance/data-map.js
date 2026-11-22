@@ -56,19 +56,19 @@ window.LORE_MAP = {
       title: 'I · Nghĩa Địa Thuyền Đắm & Túi Bùn Yếm Khí', meta: 'Stratum I · 180–340m · Kors tỉnh dậy',
       summary: 'Mảnh vỡ 34 thương thuyền Salthold và hạm đội Đô Đốc Xích Kỳ nằm chồng lên nhau. Kors tỉnh dậy tại Túi Bùn Yếm Khí (180m) với cơ thể cá nhân hóa (Image #2) và thanh kiếm mất lõi.',
       cause: 'Xác hạm đội 0 PE và tàu buôn Salthold bị hút xuống rãnh.',
-      event: 'Kors nhặt phế liệu Súng Phép, gặp Lão Boyle, thu Mảnh #1 & #2, vượt Khe Dòng Xiết Nông.',
+      event: 'Kors nhặt phế liệu Súng Phép, gặp Lão Boyle, thu Bản Ghi #1 & #2, vượt Khe Dòng Xiết Nông và thấy sớm Mỏm Cột Buồm Cờ Đỏ (cổng F1 7 ô).',
       effect: 'Dẫn tới Boong Tàu Đô Đốc và Đấu Trường Cự Giải Thiết Giáp.',
-      rules: ['Vùng bơi: <strong>Khe Dòng Xiết Nông</strong> (hiệu ứng Venturi giữa 2 thân tàu).', 'Kinh tế: rương tàu Salthold chứa <strong>18–45 Sv</strong>, Cua Giáp Rương canh giữ.'],
+      rules: ['Vùng bơi cục bộ (~25% tổng bản đồ): <strong>Khe Dòng Xiết Nông</strong> (hiệu ứng Venturi giữa 2 thân tàu).', 'Mỏm Cột Buồm Cờ Đỏ: gờ <strong>7 ô</strong> treo cờ đỏ (cổng F1 đầu tiên, chứa 1 Hạt Hải Quang Sạch).'],
       palette: [['#4d7c7e', 'Lục xám khói'], ['#8a8365', 'Cát vàng xỉn']],
       links: [['t-awaken', 'Lý do Kors tỉnh'], ['t-armada', 'Hạm đội Xích Kỳ']],
       sources: ['locations/shipwreck-graveyard.md']
     },
     {
       id: 's-boyle', x: 932, y: 485, depth: '205m', kind: 'bell', cat: 'faction', layer: 'stations',
-      title: 'Chuông Lặn Số 1 — Lão Boyle', meta: '205m · Trạm 1 atm · Mảnh #1',
-      summary: 'Trạm chuông đồng 1 atm treo từ cáp Bạch Hải, nơi Lão Boyle làm ca 14 ngày. Shop bán Bình Huyết Tảo (2→5), nâng trần HP/Stamina. Kẹp ở vách chuông là Mảnh #1 (Sổ thu mua vàng).',
-      cause: '', event: 'Thoại của Boyle thay đổi tại các mốc 0/5, 2/5, 4/5 Ấn.', effect: '',
-      rules: ['Mảnh #1: Sổ thu mua ghi chép thỏi vàng bị gỉ muối khác thường.', 'Điểm mù: Boyle không biết đê Kael-Var mở được là nhờ chính nhát kiếm của Kors.'],
+      title: 'Chuông Lặn Số 1 — Lão Boyle', meta: '205m · Trạm 1 atm · Bản Ghi #1 · Tổng 315 Sv',
+      summary: 'Trạm chuông đồng 1 atm treo từ cáp Bạch Hải, nơi Lão Boyle làm ca 14 ngày. Bình Huyết Tảo tự nạp miễn phí tại Chuông Lặn; shop bán +1 bình (45 Sv, ghép thêm 6 Mảnh Bình đạt 5), Huyết Tảo Đậm (30 Sv + 3 Huyết Tảo), +1 Vảy (60 & 110 Sv), +20 Stamina (40 Sv + 3 San Hô Lam Ngọc), Ấn Huyết Tràn (30 Sv). Không rèn kiếm. Kẹp ở vách chuông là Bản Ghi #1.',
+      cause: '', event: 'Thoại của Boyle thay đổi tại các mốc 0/5, 2/5, 4/5 Ấn; hậu game nhận trả nợ thuyền 500 Sv đổi cảnh kết.', effect: '',
+      rules: ['Bản Ghi #1: Sổ thu mua vàng Chuông Số 1.', 'Điểm mù: Boyle không biết đê Kael-Var mở được là nhờ chính nhát kiếm của Kors.'],
       palette: [], links: [['t-economy', 'Bảng giá vật tư']],
       sources: ['characters/npc-cast.md', 'systems/diegetic-fragments.md']
     },
@@ -84,12 +84,12 @@ window.LORE_MAP = {
     },
     {
       id: 's-armada-deck', x: 1175, y: 420, depth: '285m', kind: 'cave', cat: 'lore', layer: 'fragments',
-      title: 'Boong Tàu Đô Đốc Xích Kỳ · Mảnh #2', meta: '285m · Mảnh #2 (Bảng gỗ khắc móng)',
-      summary: 'Thân soái hạm của Vane Râu Sắt gãy đôi. Tàn Quân Cờ Đỏ canh xác tàu. Trên vách khoang thuyền trưởng còn Mảnh #2 khắc bằng móng tay kể lại khoảnh khắc biển tách làm đôi năm 0 PE.',
-      cause: '', event: '', effect: 'Mảnh #2 hé lộ góc nhìn thực chiến về Đêm Sóng Đen.',
+      title: 'Boong Tàu Đô Đốc Xích Kỳ · Bản Ghi #2', meta: '285m · Bản Ghi #2 (Bảng gỗ khắc móng)',
+      summary: 'Thân soái hạm của Vane Râu Sắt gãy đôi. Tàn Quân Cờ Đỏ canh xác tàu. Trên vách khoang thuyền trưởng còn Bản Ghi #2 khắc bằng móng tay kể lại khoảnh khắc biển tách làm đôi năm 0 PE.',
+      cause: '', event: '', effect: 'Bản Ghi #2 hé lộ góc nhìn thực chiến về Đêm Sóng Đen.',
       rules: ['Có lối rẽ sang phía Tây: <strong>Khe Nứt Đá Vôi</strong> dẫn vào Hang Tảo Huyết.'],
       palette: [['#b8534b', 'Cờ đỏ mục']],
-      links: [['t-armada', 'Đô Đốc Vane Râu Sắt'], ['t-frag', 'Mảnh #2']],
+      links: [['t-armada', 'Đô Đốc Vane Râu Sắt'], ['t-frag', 'Bản Ghi #2']],
       sources: ['locations/shipwreck-graveyard.md', 'systems/diegetic-fragments.md']
     },
     {
@@ -104,9 +104,9 @@ window.LORE_MAP = {
     {
       id: 's-boss-1', x: 880, y: 725, depth: '340m', kind: 'boss', cat: 'core', layer: 'bosses',
       title: 'Đấu Trường Boss 1: Cự Giải Thiết Giáp', meta: '340m · Thưởng: Ấn #1 Đôi Chân',
-      summary: 'Cua nhện cao 5.5m hàn mũi tàu đồng Đô Đốc lên mai. Pha 1 giáp kín — lừa húc kẹt cột buồm; Pha 2 vỡ giáp dậm sập sàn. Hạ gục trả lại đôi chân người + Dash Áp Suất & Wall-Kick.',
+      summary: 'Cua nhện cao 5.5m hàn mũi tàu đồng Đô Đốc lên mai. Pha 1 giáp kín — lừa húc kẹt cột buồm; Pha 2 vỡ giáp dậm sập sàn. Hạ gục nâng Quẫy Vây (4 ô Form 0) thành Dash Áp Suất (7 ô + 8f i-frame) & Đạp Tường.',
       cause: 'Hạch Đôi Chân bắn vào khoang tàu Đô Đốc năm 0 PE.',
-      event: 'Đánh bại mở Giếng Cáp Đứt xuống Tầng II.',
+      event: 'Đánh bại mở Giếng Cáp Đứt xuống Tầng II và cho phép leo Mỏm Cột Buồm Cờ Đỏ (7 ô).',
       effect: 'Mở khóa: <strong>Dash Áp Suất · Đạp Tường · Dậm Nặng</strong>.',
       rules: ['Cấm dùng đạn thô ở Pha 1 vì giáp mũi tàu phản đòn.'],
       palette: [['#c29b54', 'Mũi đồng hàn']],
@@ -127,12 +127,12 @@ window.LORE_MAP = {
     },
     {
       id: 's-oil-ceiling', x: 285, y: 290, depth: '310m', kind: 'cave', cat: 'lore', layer: 'fragments',
-      title: 'Vòm Trần Dầu Đen Úp Ngược · Mảnh #3', meta: '310–420m · Dầu 880 kg/m³ · Túi khí đẩy lên',
-      summary: 'Dầu thô nhẹ (880 kg/m³) bám thành vòm đen trên trần hang. Các túi khí lưu huỳnh bốc thẳng lên tạo giếng bơi 360°. Gần đó có Mảnh #3: đơn nợ thuốc của Boyle viết cho Rigg.',
+      title: 'Vòm Trần Dầu Đen Úp Ngược · Bản Ghi #3', meta: '310–420m · Dầu 880 kg/m³ · Đầu Đạn Nhiệt (F1)',
+      summary: 'Dầu thô nhẹ (880 kg/m³) bám thành vòm đen trên trần hang. Các túi khí lưu huỳnh bốc thẳng lên tạo giếng bơi 360°. Nửa sau Hang Tảo (F1) chứa Đầu Đạn Nhiệt Lưu Huỳnh; gần đó có Bản Ghi #3: đơn nợ thuốc của Boyle viết cho Rigg.',
       cause: '', event: 'Kích nổ Nút Sáp Nhựa Đường bằng Đạn Nhiệt tạo chớp nhiệt 2–3 giây.', effect: 'Mở Vòng Lặp Tây thông sang Tầng II.',
       rules: ['Chớp nhiệt cháy trần dầu kéo dài <strong>2–3s</strong>.'],
       palette: [['#18141c', 'Dầu đen'], ['#c97b3b', 'Chớp nhiệt']],
-      links: [['t-frag', 'Mảnh #3']],
+      links: [['t-frag', 'Bản Ghi #3']],
       sources: ['locations/kelp-oil-caverns.md', 'systems/diegetic-fragments.md']
     },
     {
@@ -160,9 +160,9 @@ window.LORE_MAP = {
     },
     {
       id: 's-marlow', x: 1270, y: 1085, depth: '540m', kind: 'bell', cat: 'faction', layer: 'stations',
-      title: 'Trạm Chuông Số 3 — Marlow "Tay Đồng"', meta: '540m · Nâng cấp Súng Phép & Đạn Nhiệt',
-      summary: 'Người sống sót duy nhất của Chuông 4 năm 142 PE. Xưởng nâng cấp Súng Phép, khoang Mana và chế Đầu Đạn Nhiệt Lưu Huỳnh. Sau khi hạ Boss 2, tiếng gõ dưới sàn Trạm 3 bỗng im bặt.',
-      cause: '', event: 'Khóa chốt 80ms; bọt khí nổ chậm 0.4s.', effect: 'Đạn Nhiệt dùng để kích nổ Trần Dầu ở Tầng I-W.',
+      title: 'Trạm Chuông Số 3 — Marlow "Tay Đồng"', meta: '540m · Rèn kiếm bậc 1–3 & nâng Súng · Tổng 655 Sv',
+      summary: 'Người sống sót duy nhất của Chuông 4 năm 142 PE. Xưởng rèn kiếm bậc 1–3 (50/120/200 Sv + quặng; bậc 4 rèn tại Bàn Đúc Ngưỡng Tế Đàn 220 Sv) và nâng Nòng Nén (60 Sv), Khoang Mana (35/60 Sv), Đá Mài Neo (40 Sv), Nòng Mát (50 Sv), Đạn Nhiệt Cháy Lâu (40 Sv + 2 Dầu Đen). Sau khi hạ Boss 2, tiếng gõ dưới sàn Trạm 3 bỗng im bặt.',
+      cause: '', event: 'Boss 2 khóa chốt báo trước 40f, khung chém active 80ms (5f), bọt khí nổ chậm 0.4s.', effect: 'Nâng cấp kiếm & súng xuyên suốt hành trình.',
       rules: ['Điểm mù: Marlow tưởng tiếng gõ là mạch đồng, không biết đó là nhịp Tôm Bọ Ngựa.'],
       palette: [['#c29b54', 'Tay đồng']],
       links: [['t-marlow', 'Lý lịch 142 PE'], ['t-economy', 'Bảng giá xưởng']],
@@ -182,11 +182,11 @@ window.LORE_MAP = {
     },
     {
       id: 's-boss-2', x: 755, y: 1155, depth: '740m', kind: 'boss', cat: 'core', layer: 'bosses',
-      title: 'Đấu Trường Boss 2: Tôm Bọ Ngựa Xích Sắt', meta: '740m · 2 Màn Bọt Khí · Thưởng: Ấn #2 Đôi Tay',
-      summary: 'Đấu trường đáy giàn khoan có 2 Bức Màn Bọt Khí và Hồ Muối Siêu Đặc phản chiếu. Đòn đấm 2 nhịp cavitation (né nhịp 1 bằng Dash, nấp sau màn bọt triệt nhịp 2). Thưởng: Đôi Tay người + combo 4 nhát & Móc Neo.',
+      title: 'Đấu Trường Boss 2: Tôm Bọ Ngựa Xích Sắt', meta: '740m (gần xác Chuông 4 ở 600m) · Thưởng: Ấn #2 Đôi Tay',
+      summary: 'Đấu trường đáy giàn khoan ở 740m có 2 Bức Màn Bọt Khí và Hồ Muối Siêu Đặc phản chiếu. Đòn đấm 2 nhịp cavitation (báo trước 40f, khung chém active 80ms/5f; né nhịp 1 bằng Dash, nấp sau màn bọt triệt nhịp 2). Thưởng: Đôi Tay người + nhát thứ 4 (Neo Bổ 2×) & Móc Neo.',
       cause: 'Hạch Đôi Tay khoáng hóa chùy thành tạ đồng.',
       event: 'Hạ gục mở Cửa Xả Thủy Lực (760m) và tời cáp lên thẳng Trạm Marlow.',
-      effect: 'Mở khóa: <strong>Anchor-Grapple (Móc Neo)</strong> & combo 4 nhát.',
+      effect: 'Mở khóa: <strong>Anchor-Grapple (Móc Neo)</strong> & nhát thứ 4 (Neo Bổ 2×).',
       rules: ['Bọt khí triệt tiêu <strong>85–90%</strong> sóng xung kích nhịp 2.'],
       palette: [['#c97b3b', 'Chớp 5,000 K'], ['#4d9aa1', 'Bọt khí']],
       links: [['t-restore', 'Ấn #2 Đôi Tay']],
@@ -208,8 +208,8 @@ window.LORE_MAP = {
     },
     {
       id: 's-rigg', x: 1065, y: 1175, depth: '660m', kind: 'bell', cat: 'faction', layer: 'stations',
-      title: 'Trạm Chợ Rigg "Mù Sóng"', meta: '660m · Đổi Nc lấy bùa & bản đồ nhánh',
-      summary: 'Rigg dời trạm từ Hang Tảo sang cửa Hầm Muối, bán bản đồ kho báu nhánh ngang và đổi Nc lấy bùa tăng vàng rơi.',
+      title: 'Trạm Chợ Rigg "Mù Sóng"', meta: '660m · Tổng 390 Sv · Nc tự đổi 10:1 Sv',
+      summary: 'Rigg dời trạm từ Hang Tảo sang cửa Hầm Muối, bán Râu Dò Dòng (30 Sv), Túi Hũ Vàng (60 Sv), Vảy Dày (90 Sv), +1 khe bùa (150 Sv) và 3 bản đồ kho báu nhánh ngang (20 Sv × 3). Mảnh Bạc Nc tự quy đổi 10 Nc = 1 Sv ngay khi nhặt.',
       cause: '', event: '', effect: '',
       rules: ['Điểm mù: Rigg không bao giờ hỏi vì sao 4 tàu Salthold chết trong tư thế tháo chạy.'],
       palette: [], links: [['s-kelp', 'Lán sớm ở Hang Tảo']],
@@ -217,12 +217,12 @@ window.LORE_MAP = {
     },
     {
       id: 's-salt-museum', x: 1285, y: 1300, depth: '780m', kind: 'cave', cat: 'lore', layer: 'fragments',
-      title: 'Bảo Tàng 4 Tàu Salthold (Chuyến 14) · Mảnh #4', meta: '780m · Bẫy Ảo Ảnh Halocline · Mảnh #4',
-      summary: '4 thương thuyền Salthold còn nguyên gỗ, vải buồm và xác thủy thủ giữ tư thế chèo trốn chạy. Chứa Mảnh #4 (Bản kê hàng Chuyến 14). Bề mặt hồ muối tạo Ảo Ảnh túi khí giả.',
-      cause: '', event: '', effect: 'Mảnh #4 chứng minh Salthold biến mất ngay đêm Đô Đốc Xích Kỳ tấn công.',
+      title: 'Bảo Tàng 4 Tàu Salthold (Chuyến 14) · Bản Ghi #4', meta: '780m · Bẫy Ảo Ảnh Halocline · Bản Ghi #4',
+      summary: '4 thương thuyền Salthold còn nguyên gỗ, vải buồm và xác thủy thủ giữ tư thế chèo trốn chạy. Chứa Bản Ghi #4 (Bản kê hàng Chuyến 14). Bề mặt hồ muối tạo Ảo Ảnh túi khí giả.',
+      cause: '', event: '', effect: 'Bản Ghi #4 chứng minh Salthold biến mất ngay đêm Đô Đốc Xích Kỳ tấn công.',
       rules: ['Không thể thở ở bề mặt halocline — đó là <strong>Ảo Ảnh Khúc Xạ</strong>.'],
       palette: [['#a7c2cc', 'Muối bạc']],
-      links: [['t-frag', 'Mảnh #4'], ['t-salthold', 'Chuyến 14']],
+      links: [['t-frag', 'Bản Ghi #4'], ['t-salthold', 'Chuyến 14']],
       sources: ['locations/halocline-salt-vaults.md', 'systems/diegetic-fragments.md']
     },
     {
@@ -250,8 +250,8 @@ window.LORE_MAP = {
     },
     {
       id: 's-ossa', x: 1075, y: 1595, depth: '920m', kind: 'bell', cat: 'faction', layer: 'stations',
-      title: 'Tháp Áp Suất Khô — Ẩn Sĩ Ossa', meta: '920m · Đổi Hạt Hải Quang · Kính 705nm & Áo Osmotic',
-      summary: 'Trưởng lão Giáo Hội Đèn Vực. Nhận Hạt Hải Quang Sạch để rèn Kính Lọc 705nm (nhìn xuyên ngụy trang đỏ Tầng IV), Áo Nhớn Osmotic và Ấn Tái Tạo. Nhận ra dòng máu Thal-Vael trong Kors ở mốc 3/5.',
+      title: 'Tháp Áp Suất Khô — Ẩn Sĩ Ossa', meta: '920m · Đổi 9/11 Hạt Hải Quang Sạch cố định',
+      summary: 'Trưởng lão Giáo Hội Đèn Vực. Nhận Hạt Hải Quang Sạch để chế Kính Lọc 705nm (2 + 2 San Hô Đèn), Áo Nhớn Osmotic (2 + 2 Muối Kép), Ấn Tái Tạo (2), Bước Êm (1), Vây Bền (1) và +1 khe tiện ích (1); 2 Hạt dư thắp lại đèn Cổ Thành. Nhận ra dòng máu Thal-Vael trong Kors ở mốc 3/5.',
       cause: '', event: '', effect: '',
       rules: ['Kính <strong>705nm</strong> ≠ Flashburst: nhìn xuyên cá săn mồi đỏ thay vì làm chói.'],
       palette: [], links: [['t-choir', 'Giáo Hội Đèn Vực']],
@@ -259,12 +259,12 @@ window.LORE_MAP = {
     },
     {
       id: 's-mural-hall', x: 245, y: 1515, depth: '960m', kind: 'cave', cat: 'lore', layer: 'fragments',
-      title: 'Sảnh 3 Tranh Tường 18m & Bia Đá · Mảnh #6', meta: '960m · Hé lộ 60% lịch sử',
-      summary: 'Ba bức phù điêu cao 18m tạc nghi lễ tách biển của Thal-Vael và chiếc Mỏ Neo 40m. Chân bia khắc Mảnh #6 cho phép người chơi ghép tới 60% sự thật trước khi xuống Tầng IV.',
+      title: 'Sảnh 3 Tranh Tường 18m & Bia Đá · Bản Ghi #6', meta: '960m · Hé lộ 60% lịch sử',
+      summary: 'Ba bức phù điêu cao 18m tạc nghi lễ tách biển của Thal-Vael và chiếc Mỏ Neo 40m. Chân bia khắc Bản Ghi #6 cho phép người chơi ghép tới 60% sự thật trước khi xuống Tầng IV.',
       cause: '', event: '', effect: '',
       rules: ['Mỗi bức tranh cao <strong>18m</strong> dọc trục thang đứng.'],
       palette: [['#c29b54', 'Phù điêu vàng cổ']],
-      links: [['t-frag', 'Mảnh #6']],
+      links: [['t-frag', 'Bản Ghi #6']],
       sources: ['locations/nere-keth-coral-citadel.md', 'systems/diegetic-fragments.md']
     },
     {
@@ -280,10 +280,10 @@ window.LORE_MAP = {
     {
       id: 's-boss-3', x: 660, y: 1745, depth: '1,240m', kind: 'boss', cat: 'core', layer: 'bosses',
       title: 'Đấu Trường Boss 3: Mẫu Sứa Chuông Cổ', meta: '1,240m · Đại sảnh 3 tầng · Thưởng: Ấn #3 Thân Mình',
-      summary: 'Sứa điện-áp suất khổng lồ treo giữa đại sảnh 3 tầng. Pha 1 phá 3 van thạch anh trên 3 cột lân quang; Pha 2 chống sóng áp suất đảo chiều. Thưởng: Lồng ngực nở + Kháng Áp Suất vĩnh viễn.',
+      summary: 'Sứa điện-áp suất khổng lồ treo giữa đại sảnh 3 tầng. Pha 1 phá 3 van thạch anh trên 3 cột lân quang; Pha 2 chống sóng áp suất đảo chiều. Thưởng: Lồng ngực nở + Mạch Lướt (2 air dash 8 hướng) + Nhát Cắt Hải Quang + Kháng Áp Suất (+20 Stamina).',
       cause: 'Hạch Thân Mình nhập túi khí sứa cổ thành lò phản ứng sinh học.',
-      event: 'Chiến thắng mở Hố Đứt Gãy Tầng IV (1,280m).',
-      effect: 'Mở khóa: <strong>Kháng Áp Suất Tầng Sâu</strong> & màng thở Hải Quang.',
+      event: 'Chiến thắng mở đường vượt màng áp suất vào Rãnh Hóa Thạch Tầng IV.',
+      effect: 'Mở khóa: <strong>Mạch Lướt · Nhát Cắt Hải Quang · Kháng Áp Suất</strong>.',
       rules: [], palette: [['#4d9aa1', 'Xúc tu điện']],
       links: [['t-restore', 'Ấn #3 Thân Mình']],
       sources: ['characters/four-abyssal-wardens.md', 'locations/nere-keth-coral-citadel.md']
@@ -292,23 +292,23 @@ window.LORE_MAP = {
     // === TẦNG III-W: THÁNH ĐƯỜNG ỐNG VANG (1,100–1,480m) ===
     {
       id: 's-organ', x: 265, y: 1895, depth: '1,100–1,300m', kind: 'region', cat: 'branch', layer: 'regions',
-      title: 'III-W · Thánh Đường Ống Vang & Phím Cộng Hưởng', meta: '1,100–1,480m · Nhánh Tây',
-      summary: 'Cơ cấu đàn ống thủy lực khổng lồ của Thal-Vael. Hành lang phím Trầm / Trung / Cao giải đố bằng Súng Phép để đóng/mở bức màn bọt khí cản sóng hủy diệt.',
+      title: 'III-W · Thánh Đường Ống Vang & Phím Cộng Hưởng', meta: '1,100–1,480m · Cân áp Thal-Vael · Nhánh Tây',
+      summary: 'Cơ cấu đàn ống thủy lực khổng lồ của Thal-Vael. Hành lang phím Trầm / Trung / Cao giải đố bằng Súng Phép để đóng/mở bức màn bọt khí cản sóng hủy diệt. Nhờ kiến trúc cân áp Thal-Vael, toàn vùng 1,100–1,480m vẫn an toàn dù chưa có Ấn Thân Mình.',
       cause: 'Hệ thống phát tín hiệu cộng hưởng điều khiển nhịp nước sâu.',
-      event: 'Đi qua Giếng Cộng Hưởng Sóng Đứng cao 50m (bơi 360° hổ phách).',
-      effect: 'Thông Hẻm Cộng Hưởng (1,480m) sang sườn Tây Tầng IV.',
-      rules: ['Tần số chia 3 bậc: <strong>Trầm · Trung · Cao</strong>.'],
+      event: 'Đi qua Giếng Cộng Hưởng Sóng Đứng cao 50m (bơi 360° hổ phách) và đụng độ mini-boss Người Gác Đàn Ống.',
+      effect: 'Thông Hẻm Cộng Hưởng (1,480m) tới màng áp suất cửa vào sườn Tây Tầng IV.',
+      rules: ['Tần số chia 3 bậc: <strong>Trầm · Trung · Cao</strong>.', 'Cổng áp suất chặn theo <strong>vị trí cửa vào Rãnh Hóa Thạch</strong>, không phải độ sâu thô &gt;1,400m.'],
       palette: [['#c29b54', 'Sóng hổ phách'], ['#1b1930', 'Đá đen tím']],
       links: [['t-choir', 'Chuỗi Choir-Pulse']],
       sources: ['locations/sunken-resonance-organ.md']
     },
     {
       id: 's-organ-vault', x: 265, y: 1975, depth: '1,390m', kind: 'loot', cat: 'lore', layer: 'fragments',
-      title: 'Bục Hai Trưởng Lão & Hầm Đĩa Sóng · Mảnh #5', meta: '1,390m · Mảnh #5 · Heavy Bore 2 nhịp',
-      summary: 'Phòng chỉ huy nơi hai trưởng lão Thal-Vael ghi lại Mảnh #5 (Phiếu thử nghiệm ống vang số 7 về dấu hiệu rạn Lõi Neo). Chứa nâng cấp Heavy Cavitation Bore (nổ 2 nhịp 0.15s) và Ống Ngắm Cộng Hưởng.',
+      title: 'Bục Hai Trưởng Lão & Bàn Đúc Thal-Vael · Bản Ghi #5', meta: '1,390m · Bản Ghi #5 · Ống Ngắm Cộng Hưởng',
+      summary: 'Phòng chỉ huy nơi hai trưởng lão Thal-Vael ghi lại Bản Ghi #5 (Phiếu thử nghiệm ống vang số 7 về dấu hiệu rạn Lõi Neo). Chứa Bàn Đúc Thal-Vael chế Ống Ngắm Cộng Hưởng và nâng cấp Heavy Cavitation Bore (nổ 2 nhịp 0.15s).',
       cause: '', event: '', effect: '',
-      rules: ['Bản nâng cấp <strong>Heavy Bore</strong> cho Súng Phép Runeflint.'],
-      palette: [], links: [['t-frag', 'Mảnh #5']],
+      rules: ['Bàn Đúc Thal-Vael chế <strong>Ống Ngắm Cộng Hưởng</strong> & bản nâng cấp <strong>Heavy Bore</strong>.'],
+      palette: [], links: [['t-frag', 'Bản Ghi #5']],
       sources: ['locations/sunken-resonance-organ.md', 'systems/diegetic-fragments.md']
     },
 
@@ -349,8 +349,8 @@ window.LORE_MAP = {
     // === TẦNG V: TẾ ĐÀN LÕI NEO TRIỀU TỊCH (2,050–2,400m) ===
     {
       id: 's-altar-threshold', x: 535, y: 2235, depth: '2,110m', kind: 'bell', cat: 'system', layer: 'stations',
-      title: 'Ngưỡng Tế Đàn & 8 Trụ Luật Bazan', meta: '2,110m · Điểm hồi sinh 0-enemy',
-      summary: 'Bệ đá bazan khắc 8 trụ luật cổ quanh Núi Kho Báu Cô Đọng. Là điểm hồi sinh an toàn 0 kẻ địch trước khi bước vào Khoang Triệt Tiêu Trọng Lực.',
+      title: 'Ngưỡng Tế Đàn, 8 Trụ Luật & Bàn Đúc Kiếm Bậc 4', meta: '2,110m · Điểm hồi sinh 0-enemy · Bàn Đúc 220 Sv',
+      summary: 'Bệ đá bazan khắc 8 trụ luật cổ quanh Núi Kho Báu Cô Đọng. Là điểm hồi sinh an toàn 0 kẻ địch và đặt Bàn Đúc Ngưỡng Tế Đàn (rèn kiếm bậc 4: 220 Sv + 3 Mảnh Vàng Vỡ, mở sau B4) trước khi bước vào Khoang Triệt Tiêu Trọng Lực.',
       cause: '', event: '', effect: '',
       rules: [], palette: [], links: [],
       sources: ['locations/vael-moor-anchor-core.md']
@@ -360,7 +360,7 @@ window.LORE_MAP = {
       title: 'V · Mỏ Neo Triều Tịch 40m & Tàn Ảnh Vực Chủ', meta: '2,400m · Khoang Triệt Tiêu Trọng Lực · Ấn #5 Ký Ức',
       summary: 'Mỏ Neo khổng lồ cao 40m mang vết chém năm 0 PE giữa Khoang Triệt Tiêu 100% Áp Lực Chì (bơi 360° toàn sảnh). Tàn Ảnh Vực Chủ kiểm định Re-Anchoring Stress Test → trả về Ấn #5 Ký Ức (100% cốt truyện).',
       cause: 'Chính Kors (Image #2) là người chém đứt Mỏ Neo năm 0 PE.',
-      event: 'Hàn gắn Mỏ Neo bằng San Hô Tự Hàn; Mạch Phù Ấn Tốc Hành đưa Kors bơi thẳng về 0m.',
+      event: 'Hàn gắn Mỏ Neo bằng San Hô Tự Hàn; Áp Lực Chì tan hoàn toàn (mở bơi 360° toàn bản đồ hậu game + trả nợ thuyền 500 Sv cho Lão Boyle đổi cảnh kết).',
       effect: 'Kết thúc chu kỳ chia cắt 200 năm giữa Bạch Hải và Vực Vael.',
       rules: ['Nhiệt lõi khe nứt: <strong>464°C</strong>.', 'Khoang triệt tiêu <strong>100% Áp Lực Chì</strong>.'],
       palette: [['#e4ecee', 'Hải Quang bạch kim'], ['#c29b54', 'Vàng cổ vỡ']],

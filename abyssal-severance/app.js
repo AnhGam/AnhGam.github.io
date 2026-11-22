@@ -3,7 +3,9 @@
   const MAP = window.LORE_MAP;
   const ENTITIES = window.LORE_ENTITIES || [];
   const POI_ENTITIES = window.LORE_POI_ENTITIES || {};
-  const TAB_LABEL = { timeline: 'Lịch Sử', map: 'Bản Đồ Địa Tầng', codex: 'Bách Khoa Thực Thể' };
+  const DESIGN = window.LORE_DESIGN || [];
+  const TAB_LABEL = { timeline: 'Lịch Sử', map: 'Bản Đồ Địa Tầng', codex: 'Bách Khoa Thực Thể', design: 'Game Design' };
+  const STATUS_LABEL = { locked: 'Đã chốt', open: 'Đề xuất' };
   const CAT_LABEL = { core: 'Core', faction: 'Phe / NPC', system: 'Hệ thống', branch: 'Nhánh phụ', lore: 'Lore / Mảnh' };
   const CODEX_CAT_LABEL = { material: 'Vật liệu', character: 'Nhân vật & Boss', mob: 'Quái vật', gear: 'Trang bị', vessel: 'Hóa Hình', poi: 'Địa điểm' };
 
@@ -18,23 +20,27 @@
 
   const byId = {};
   for (const n of TIMELINE) byId[n.id] = { ...n, tab: 'timeline' };
-  for (const p of MAP.pois) byId[p.id] = { ...p, tab: 'map', from: [], image: `assets/entities/${p.id}.jpg` };
-  for (const e of ENTITIES) byId[e.id] = { ...e, tab: 'codex', from: [], image: `assets/entities/${e.id}.jpg` };
+  for (const p of MAP.pois) byId[p.id] = { ...p, tab: 'map', from: [], image: p.image || `assets/entities/${p.id}.jpg` };
+  for (const e of ENTITIES) byId[e.id] = { ...e, tab: 'codex', from: [], image: e.image || `assets/entities/${e.id}.jpg` };
+  for (const d of DESIGN) byId[d.id] = { ...d, tab: 'design', from: d.parent ? [[d.parent, 'core']] : [], links: d.links || [] };
+  const treeNodes = () => (state.tab === 'design' ? DESIGN : TIMELINE);
 
   const $ = (id) => document.getElementById(id);
   const viewport = $('viewport'), stage = $('canvas-stage'), svg = $('edges-svg'), underlay = $('map-underlay'), layer = $('nodes-layer');
   const codexView = $('codex-view'), drawer = $('detail-drawer');
-  const state = { tab: 'timeline', filter: 'all', mapLayer: 'all', codexCat: 'all', selected: null, history: [], scale: 1, tx: 0, ty: 0 };
+  const state = { tab: 'timeline', filter: 'all', designFilter: 'all', mapLayer: 'all', codexCat: 'all', selected: null, history: [], scale: 1, tx: 0, ty: 0 };
 
   function render() {
     const isMap = state.tab === 'map';
     const isCodex = state.tab === 'codex';
+    const isDesign = state.tab === 'design';
     viewport.classList.toggle('hidden', isCodex);
     codexView.classList.toggle('hidden', !isCodex);
     document.querySelector('.zoom-controls').classList.toggle('hidden', isCodex);
     viewport.classList.toggle('is-chart', !isMap && !isCodex);
-    $('filter-group-timeline').classList.toggle('hidden', isMap || isCodex);
-    $('legend-timeline').classList.toggle('hidden', isMap || isCodex);
+    $('filter-group-timeline').classList.toggle('hidden', isMap || isCodex || isDesign);
+    $('legend-timeline').classList.toggle('hidden', isMap || isCodex || isDesign);
+    $('filter-group-design').classList.toggle('hidden', !isDesign);
     $('filter-group-map').classList.toggle('hidden', !isMap);
     $('legend-map').classList.toggle('hidden', !isMap);
     $('filter-group-codex').classList.toggle('hidden', !isCodex);
@@ -43,6 +49,7 @@
 
     if (isCodex) renderCodex();
     else if (isMap) renderMap();
+    else if (isDesign) renderDesign();
     else renderTimeline();
     renderQuickNav();
     applyFilter();
@@ -79,13 +86,19 @@
 
   function drawEdges() {
     let maxX = 0, maxY = 0, paths = '';
-    for (const n of TIMELINE) {
+    const radial = state.tab === 'design';
+    for (const n of treeNodes()) {
       const b = box(n.id);
       maxX = Math.max(maxX, b.x + b.w); maxY = Math.max(maxY, b.y + b.h);
-      for (const [pid, type] of n.from) {
+      for (const [pid, type] of byId[n.id].from) {
         const a = box(pid);
         if (!a) continue;
         let x1, y1, x2, y2, d;
+        if (radial) {
+          d = `M${a.x + a.w / 2},${a.y + a.h / 2} L${b.x + b.w / 2},${b.y + b.h / 2}`;
+          paths += `<path class="edge-path edge-${n.status === 'open' ? 'branch' : 'core'}" data-a="${pid}" data-b="${n.id}" d="${d}"/>`;
+          continue;
+        }
         const dx = (b.x + b.w / 2) - (a.x + a.w / 2), dy = (b.y + b.h / 2) - (a.y + a.h / 2);
         if (Math.abs(dy) > Math.abs(dx) * 0.6) {
           x1 = a.x + a.w / 2; y1 = dy > 0 ? a.y + a.h : a.y;
@@ -104,6 +117,52 @@
     svg.setAttribute('width', maxX + 400);
     svg.setAttribute('height', maxY + 400);
     svg.innerHTML = paths;
+  }
+
+  // ---------- Tab 4: Game Design radial tree ----------
+  function renderDesign() {
+    layer.innerHTML = '';
+    const branches = DESIGN.filter((d) => d.parent === 'gd-root');
+    const leafCount = DESIGN.length - 1 - branches.length;
+    // Leaves sit in angular slots around the full circle (one empty slot between branches),
+    // staggered over 3 rings so same-ring neighbours are 3 slots apart (~260 px of arc).
+    const slots = leafCount + branches.length + 1; // +1: wider gap where the circle wraps
+    const step = (2 * Math.PI) / slots;
+    const RING_GAP = 270;
+    const r0 = Math.max(820, (300 * slots) / (3 * 2 * Math.PI));
+    const R1 = 700, C = r0 + 2 * RING_GAP + 320;
+    const pos = { 'gd-root': [C, C] };
+    let slot = 0, g = 0;
+    branches.forEach((b) => {
+      const kids = DESIGN.filter((d) => d.parent === b.id);
+      const first = slot;
+      kids.forEach((k) => {
+        const a = slot * step - Math.PI / 2;
+        const r = r0 + (g % 3) * RING_GAP; g++;
+        pos[k.id] = [C + r * Math.cos(a), C + r * Math.sin(a)];
+        slot++;
+      });
+      const mid = ((first + slot - 1) / 2) * step - Math.PI / 2;
+      pos[b.id] = [C + R1 * Math.cos(mid), C + R1 * Math.sin(mid)];
+      slot++; // gap between branches
+    });
+    for (const n of DESIGN) {
+      const lvl = n.parent === null ? 0 : n.parent === 'gd-root' ? 1 : 2;
+      const kids = DESIGN.filter((d) => d.parent === n.id).length;
+      const el = document.createElement('div');
+      el.className = `tree-node design-node design-lvl-${lvl} ${lvl < 2 ? 'is-core' : 'is-branch'} status-${n.status}`;
+      el.dataset.id = n.id;
+      el.innerHTML = `
+        <div class="node-top"><span class="node-kind kind-${n.status === 'locked' ? 'core' : 'branch'}">${lvl === 2 ? STATUS_LABEL[n.status] : lvl === 1 ? 'Nhánh' : 'Gốc'}</span><span class="node-meta">${n.meta}</span></div>
+        <div class="node-title">${n.title}</div>
+        <div class="node-summary">${n.summary}</div>
+        ${lvl < 2 ? `<div class="node-footer"><span>${kids} ${lvl ? 'quyết định' : 'nhánh'}</span><span class="cta">Chi tiết →</span></div>` : ''}`;
+      el.addEventListener('click', (e) => { e.stopPropagation(); select(n.id, true); });
+      layer.appendChild(el);
+      el.style.left = (pos[n.id][0] - el.offsetWidth / 2) + 'px';
+      el.style.top = (pos[n.id][1] - el.offsetHeight / 2) + 'px';
+    }
+    drawEdges();
   }
 
   // ---------- Tab 2: Bathymetric Cutaway Map (HD-2D Artwork + Vector Overlays) ----------
@@ -197,7 +256,7 @@
       title: p.title,
       category: 'poi',
       meta: `${p.depth || ''} · ${p.meta}`,
-      image: `assets/entities/${p.id}.jpg`
+      image: p.image || `assets/entities/${p.id}.jpg`
     }));
     return [...ENTITIES, ...pois];
   }
@@ -239,7 +298,11 @@
       }));
       return;
     }
-    if (state.tab === 'map') {
+    if (state.tab === 'design') {
+      $('quick-nav').innerHTML = `<div class="quick-nav-title">Cây Game Design</div>` +
+        DESIGN.filter((d) => d.parent === null || d.parent === 'gd-root')
+          .map((d) => `<button class="quick-item" type="button" data-id="${d.id}"><span class="quick-item-tag">${d.meta}</span><span class="quick-item-name">${d.title}</span></button>`).join('');
+    } else if (state.tab === 'map') {
       $('quick-nav').innerHTML = `<div class="quick-nav-title">Trục Độ Sâu (0m – 2,400m)</div>` +
         MAP.pois.filter((p) => p.kind === 'hub' || p.kind === 'region' || p.kind === 'boss')
           .map((p) => `<button class="quick-item" type="button" data-id="${p.id}"><span class="quick-item-tag">${p.depth}</span><span class="quick-item-name">${p.title}</span></button>`).join('');
@@ -261,6 +324,7 @@
       if (state.mapLayer === 'fragments') return n.layer === 'fragments' || n.kind === 'loot';
       return true;
     }
+    if (n.tab === 'design') return state.designFilter === 'all' || n.parent === null || n.parent === 'gd-root' || n.status === state.designFilter;
     if (state.filter === 'all' || n.kind === 'core') return true;
     if (state.filter === 'core-only') return false;
     return n.cat === state.filter;
@@ -286,7 +350,7 @@
         const n = byId[sel];
         n.from.forEach(([p]) => related.add(p));
         n.links.forEach(([l]) => related.add(l));
-        TIMELINE.forEach((m) => { if (m.from.some(([p]) => p === sel)) related.add(m.id); });
+        treeNodes().forEach((m) => { if (byId[m.id].from.some(([p]) => p === sel)) related.add(m.id); });
       }
       layer.querySelectorAll('.tree-node').forEach((el) => {
         const n = byId[el.dataset.id];
@@ -328,13 +392,13 @@
       applyTransform();
       return;
     }
-    const xs = TIMELINE.map((n) => box(n.id)).filter(Boolean);
+    const xs = treeNodes().map((n) => box(n.id)).filter(Boolean);
     if (!xs.length) return;
     const minX = Math.min(...xs.map((b) => b.x)), minY = Math.min(...xs.map((b) => b.y));
     const maxX = Math.max(...xs.map((b) => b.x + b.w)), maxY = Math.max(...xs.map((b) => b.y + b.h));
     state.scale = Math.min(1, (vw - 60) / (maxX - minX), (vh - 60) / (maxY - minY));
     state.tx = (vw - (maxX - minX) * state.scale) / 2 - minX * state.scale;
-    state.ty = 30 - minY * state.scale;
+    state.ty = state.tab === 'design' ? (vh - (maxY - minY) * state.scale) / 2 - minY * state.scale : 30 - minY * state.scale;
     applyTransform();
   }
 
@@ -396,6 +460,12 @@
     applyFilter();
   }));
 
+  document.querySelectorAll('.design-filter-pill').forEach((b) => b.addEventListener('click', () => {
+    state.designFilter = b.dataset.status;
+    document.querySelectorAll('.design-filter-pill').forEach((x) => x.classList.toggle('active', x === b));
+    applyFilter();
+  }));
+
   document.querySelectorAll('.codex-filter-pill').forEach((b) => b.addEventListener('click', () => {
     state.codexCat = b.dataset.cat;
     document.querySelectorAll('.codex-filter-pill').forEach((x) => x.classList.toggle('active', x === b));
@@ -419,39 +489,43 @@
   function openDrawer(n) {
     drawer.classList.remove('hidden');
     $('btn-history-back').classList.toggle('hidden', state.history.length === 0);
-    const badgePrimary = n.tab === 'codex'
+    const badgePrimary = n.tab === 'design'
+      ? (STATUS_LABEL[n.status] || '')
+      : n.tab === 'codex'
       ? (CODEX_CAT_LABEL[n.category] || 'Thực thể')
       : n.tab === 'map'
         ? (n.depth || 'Địa điểm')
         : (n.kind === 'core' ? 'Core Build' : 'Nhánh phụ');
     $('drawer-badges').innerHTML =
-      `<span class="node-kind kind-${n.kind === 'core' || n.kind === 'region' || n.kind === 'hub' ? 'core' : 'branch'}">${badgePrimary}</span>` +
-      `<span class="node-kind kind-${n.cat === 'core' ? 'core' : (n.cat || 'lore')}">${CAT_LABEL[n.cat] || (n.tab === 'codex' ? 'Bách Khoa' : 'Bản đồ')}</span>` +
+      `<span class="node-kind kind-${n.kind === 'core' || n.kind === 'region' || n.kind === 'hub' || n.status === 'locked' ? 'core' : 'branch'}">${badgePrimary}</span>` +
+      (n.tab === 'design' ? '' : `<span class="node-kind kind-${n.cat === 'core' ? 'core' : (n.cat || 'lore')}">${CAT_LABEL[n.cat] || (n.tab === 'codex' ? 'Bách Khoa' : 'Bản đồ')}</span>`) +
       `<span class="node-kind kind-lore">${TAB_LABEL[n.tab]}</span>`;
     $('drawer-title').textContent = n.title;
     $('drawer-subtitle').textContent = n.meta;
 
     const step = (cls, label, text) => text ? `<div class="causal-step"><div class="causal-step-label ${cls}">${label}</div><p>${text}</p></div>` : '';
     const causal = step('cause', 'Nguyên nhân', n.cause) + step('', 'Diễn biến', n.event) + step('effect', 'Hệ quả', n.effect) +
-      step('', 'Ngoại hình & Thiết kế', n.visual) + step('effect', 'Lý do Lore', n.loreReason);
+      step('', 'Ngoại hình & Thiết kế', n.visual) + step('effect', 'Lý do Lore', n.loreReason) + step('cause', 'Vì sao', n.why);
     const parents = (n.from || []).map(([p]) => [p, 'Node cha trên cây']);
-    const children = n.tab === 'timeline' ? TIMELINE.filter((m) => m.from.some(([p]) => p === n.id)).map((m) => [m.id, 'Nhánh dẫn ra']) : [];
+    const children = n.tab === 'timeline' ? TIMELINE.filter((m) => m.from.some(([p]) => p === n.id)).map((m) => [m.id, 'Nhánh dẫn ra'])
+      : n.tab === 'design' ? DESIGN.filter((m) => m.parent === n.id).map((m) => [m.id, `${STATUS_LABEL[m.status]} · ${m.meta}`]) : [];
     const links = [...(n.links || []), ...parents, ...children].filter(([id], i, arr) => byId[id] && arr.findIndex(([x]) => x === id) === i);
     const subIds = (POI_ENTITIES[n.id] || []).filter((id) => byId[id]);
 
     $('drawer-body').innerHTML = `
       ${n.image ? `<div class="drawer-hero"><img src="${n.image}" alt="${n.title}" /></div>` : ''}
       <div class="drawer-quote">${n.summary}</div>
-      ${causal ? `<div><div class="section-label">${n.tab === 'codex' ? 'Đặc tả hình ảnh &amp; Lore' : 'Chuỗi nhân quả'}</div><div class="causal-grid">${causal}</div></div>` : ''}
+      ${causal ? `<div><div class="section-label">${n.tab === 'codex' ? 'Đặc tả hình ảnh &amp; Lore' : n.tab === 'design' ? 'Lý do' : 'Chuỗi nhân quả'}</div><div class="causal-grid">${causal}</div></div>` : ''}
       ${subIds.length ? `<div><div class="section-label">Thực thể xuất hiện (${subIds.length}) — bấm để xem</div><div class="sub-entity-grid">${subIds.map((eid) => {
         const sub = byId[eid];
         return `<button class="sub-entity-card" type="button" data-id="${eid}"><img class="sub-entity-thumb" src="${sub.image || `assets/entities/${eid}.jpg`}" alt="${sub.title}" loading="lazy" /><span class="sub-entity-info"><span class="sub-entity-name">${sub.title}</span><span class="sub-entity-meta">${sub.meta}</span></span></button>`;
       }).join('')}</div></div>` : ''}
-      ${n.rules && n.rules.length ? `<div><div class="section-label">Luật &amp; số đo</div><ul class="rules-list">${n.rules.map((r) => `<li>${r}</li>`).join('')}</ul></div>` : ''}
+      ${n.rules && n.rules.length ? `<div><div class="section-label">${n.tab === 'design' ? 'Chi tiết thiết kế' : 'Luật &amp; số đo'}</div><ul class="rules-list">${n.rules.map((r) => `<li>${r}</li>`).join('')}</ul></div>` : ''}
       ${n.palette && n.palette.length ? `<div><div class="section-label">Bảng màu</div><div class="palette-row">${n.palette.map(([hex, name]) => `<span class="swatch"><span class="swatch-box" style="background:${hex}"></span>${hex} · ${name}</span>`).join('')}</div></div>` : ''}
       ${links.length ? `<div><div class="section-label">Liên kết (bấm để nhảy)</div><div class="cross-links">${links.map(([id, why]) => `
         <button class="cross-link-btn" type="button" data-id="${id}"><span class="cross-link-main"><span class="cross-link-title">${byId[id].title}</span><span class="cross-link-reason">${why}</span></span>${byId[id].tab !== n.tab ? `<span class="cross-link-tab">→ ${TAB_LABEL[byId[id].tab]}</span>` : ''}</button>`).join('')}</div></div>` : ''}
-      <div><div class="section-label">Nguồn lore/</div><div class="sources-box">${(n.sources || []).map((s) => `<span class="source-chip">${s}</span>`).join('')}</div></div>`;
+      ${n.doc ? `<div><div class="section-label">Tài liệu đầy đủ</div><a class="doc-link" href="design/${n.doc.split(' · ')[0]}" target="_blank" rel="noopener">${n.doc} ↗</a></div>` : ''}
+      <div><div class="section-label">${n.tab === 'design' ? 'Nguồn' : 'Nguồn lore/'}</div><div class="sources-box">${(n.sources || []).map((s) => `<span class="source-chip">${s}</span>`).join('')}</div></div>`;
     $('drawer-body').querySelectorAll('.cross-link-btn, .sub-entity-card').forEach((b) => b.addEventListener('click', () => select(b.dataset.id, true)));
     $('drawer-body').scrollTop = 0;
   }

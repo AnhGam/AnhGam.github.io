@@ -62,7 +62,7 @@ window.LORE_TIMELINE = [
     effect: 'Bạch Hải được cứu 100%; phễu phản chấn kéo chìm 7 tàu Xích Kỳ + 34 tàu Salthold.',
     rules: ['Vành khóa đối trọng cao <strong>40m</strong>.', 'Vết chém xiên rạng quang còn trên thân Neo.'],
     palette: [['#14121D', 'Dầu đen'], ['#22D3EE', 'Kiếm bão hòa Hải Quang']],
-    links: [['s-vaelmoor', 'Hiện trường Tầng V'], ['t-salthold', 'Tàu buôn bị hút chìm'], ['t-frag', 'Mảnh 2 & 5 kể lại đêm này']],
+    links: [['s-vaelmoor', 'Hiện trường Tầng V'], ['t-salthold', 'Tàu buôn bị hút chìm'], ['t-frag', 'Bản Ghi #2 & #5 kể lại đêm này']],
     sources: ['systems/history-and-timeline.md', 'story-logic-audit.md'],
     from: [['t-kors', 'core'], ['t-wick', 'branch'], ['t-armada', 'branch']]
   },
@@ -124,7 +124,7 @@ window.LORE_TIMELINE = [
     summary: 'Qua Chân → Tay → Thân → Đầu → Ký Ức, Kors vượt Re-Anchoring Stress Test, ghép Bùa vào Kiếm hàn Mỏ Neo.',
     cause: 'Tàn Ảnh Vực Chủ kiểm định chủ thể mang máu Thal-Vael.',
     event: 'Bio-Coral Regeneration hàn kín vết nứt năm xưa.',
-    effect: 'Áp Lực Chì tan; Kors bơi tự do về mặt Bạch Hải. 100% sự thật, 0% bỏ ngỏ.',
+    effect: 'Áp Lực Chì tan hoàn toàn (mở bơi 360° toàn bản đồ hậu game + lựa chọn trả nợ thuyền 500 Sv cho Boyle đổi cảnh kết); Kors bơi tự do về mặt Bạch Hải. 100% sự thật, 0% bỏ ngỏ.',
     rules: ['Thứ tự cố định: <strong>Chân → Tay → Thân → Đầu → Ký Ức</strong>.'],
     palette: [['#D8F8FF', 'Hải Quang bạch kim'], ['#D4AF37', 'Vàng cổ']],
     links: [['s-vaelmoor', 'Trận cuối Tầng V'], ['t-anchor', 'Đóng vòng với Mỏ Neo gốc']],
@@ -149,7 +149,7 @@ window.LORE_TIMELINE = [
   {
     id: 't-leak', kind: 'branch', cat: 'system', x: 150, y: 1200,
     title: 'Chuỗi hệ quả 5 tầng: Áp Lực Chì & Hải Quang', meta: 'Luật thế giới',
-    summary: 'Hai nguyên lý sinh ra mọi cơ chế: đi bộ đáy, bơi 1–2s, 4 vùng bơi 360°, Kiếm Stamina ↔ Súng Mana.',
+    summary: 'Hai nguyên lý sinh ra mọi cơ chế: đi bộ đáy, bơi giật 1–2s, 4 vùng bơi 360° cục bộ (~25% bản đồ), Kiếm miễn Stamina hồi Mana ↔ Súng Mana, Stamina thuần traversal.',
     cause: 'Bio-Compression + rò rỉ Hải Quang từ vành dẫn rạn nứt.',
     event: '4 dạng vùng bơi: Mạch Phù Ấn, Hồ Muối Siêu Đặc, Ống Phun Thủy Nhiệt, Buồng Khí Chìm.',
     effect: 'Kiếm hút Hải Quang hồi Mana → buộc áp sát (Aggressive Resource Loop).',
@@ -162,11 +162,11 @@ window.LORE_TIMELINE = [
   {
     id: 't-economy', kind: 'branch', cat: 'system', x: 150, y: 1440,
     title: 'Kinh tế kho báu: Sv / Nc / Hạt Hải Quang', meta: 'Kỷ Trục Vớt',
-    summary: 'Vàng Salthold còn nguyên dưới đáy; 10 Nc = 1 Sv; Giáo Hội chỉ đổi Hạt Hải Quang Sạch.',
+    summary: 'Vàng Salthold còn nguyên dưới đáy; 10 Nc tự đổi = 1 Sv ngay khi nhặt; tổng chi 1,580 Sv; Giáo Hội chỉ đổi 9/11 Hạt Hải Quang Sạch cố định.',
     cause: 'Xác 34 tàu buôn + Hải Quang rò rỉ = tài nguyên khai thác.',
     event: 'Tuyến tiếp tế Chuông 1 (180m) → Chuông 2 (480m) → lén xuống Trạm 3 (~540m).',
     effect: '4 Ấn Ký là Hạch Sinh Học — vô giá trị thương mại, không ai cướp được.',
-    rules: ['Bình Huyết Tảo <strong>15 Sv</strong>; nòng Cavitation <strong>60–140 Sv</strong>.', 'Rương Salthold <strong>18–45 Sv</strong>.'],
+    rules: ['Bình Huyết Tảo <strong>tự nạp miễn phí tại Chuông Lặn</strong>; Boyle bán +1 bình <strong>45 Sv</strong>, Marlow rèn kiếm bậc 1–3 (<strong>50/120/200 Sv</strong>) & Nòng Nén <strong>60 Sv</strong>, Bàn Đúc rèn kiếm bậc 4 (<strong>220 Sv</strong>).', 'Trả nợ thuyền hậu game cho Boyle: <strong>500 Sv</strong>.'],
     palette: [['#D4AF37', 'Sovereign']],
     links: [['s-boyle', 'Shop Lão Boyle'], ['s-marlow', 'Xưởng Marlow']],
     sources: ['systems/ecology-and-treasure-economy.md'],
@@ -210,7 +210,7 @@ window.LORE_TIMELINE = [
     title: '34 thương thuyền Salthold', meta: 'Chuyến 14, ngày 14 Triều Đen',
     summary: 'Chở 120 hòm vàng thuế + 4 hòm lễ vật cầu bình yên; chìm cùng đêm — nguồn kho báu Tầng I–II.',
     cause: 'Phễu phản chấn.', event: 'Bị hút chìm.', effect: 'Vàng còn nguyên trong hồ muối thiếu oxy.',
-    rules: [], palette: [['#B8DCE6', 'Muối bạc']], links: [['s-salt', 'Hầm Muối giữ xác tàu'], ['t-frag', 'Mảnh 4']],
+    rules: [], palette: [['#B8DCE6', 'Muối bạc']], links: [['s-salt', 'Hầm Muối giữ xác tàu'], ['t-frag', 'Bản Ghi #4']],
     sources: ['systems/history-and-timeline.md', 'diegetic-fragments.md'],
     from: [['t-blacktide', 'branch']]
   },
@@ -240,7 +240,7 @@ window.LORE_TIMELINE = [
     summary: 'Thương Hội tháo đê 18m lấy đá xây chợ; tin biển yên là "trời ban".',
     cause: '200 năm không sóng thần.', event: 'Lễ hội pháo hoa.',
     effect: 'Irony: bình yên đến từ chính tên hải tặc họ nguyền rủa.',
-    rules: [], palette: [], links: [['t-frag', 'Mảnh 1 — sổ thu mua']],
+    rules: [], palette: [], links: [['t-frag', 'Bản Ghi #1 — sổ thu mua']],
     sources: ['systems/history-and-timeline.md'],
     from: [['t-awaken', 'branch']]
   },
@@ -273,11 +273,11 @@ window.LORE_TIMELINE = [
   },
   {
     id: 't-frag', kind: 'branch', cat: 'lore', x: 1400, y: 1920,
-    title: '6 Mảnh tài liệu thiên lệch (40%)', meta: 'Oblique Worldbuilding',
-    summary: 'Sổ thu mua, bảng gỗ khắc móng, đơn thuốc, bản kê hàng, phiếu tần số, bia đá — mỗi mảnh một điểm mù.',
+    title: '6 Bản Ghi tài liệu thiên lệch (40%)', meta: 'Oblique Worldbuilding',
+    summary: 'Sổ thu mua, bảng gỗ khắc móng, đơn thuốc, bản kê hàng, phiếu tần số, bia đá — mỗi Bản Ghi một điểm mù (đặt tên Bản Ghi #1–#6 để tách bạch với Mảnh #5 = Ấn Ký Ký Ức).',
     cause: '', event: 'Rải khắp Tầng I → III.', effect: 'Người chơi tự ghép 40%; Mảnh #5 Ký Ức chốt 100%.',
     rules: ['Mỗi văn bản chỉ <strong>1–3 dòng</strong>.'], palette: [],
-    links: [['s-graveyard', 'Mảnh 1–2'], ['s-kelp', 'Mảnh 3'], ['s-salt', 'Mảnh 4'], ['s-organ', 'Mảnh 5'], ['s-nereketh', 'Mảnh 6']],
+    links: [['s-graveyard', 'Bản Ghi #1–#2'], ['s-kelp', 'Bản Ghi #3'], ['s-salt', 'Bản Ghi #4'], ['s-organ', 'Bản Ghi #5'], ['s-nereketh', 'Bản Ghi #6']],
     sources: ['diegetic-fragments.md'],
     from: [['t-kaelvar', 'branch'], ['t-salthold', 'loop']]
   }
